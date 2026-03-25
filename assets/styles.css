@@ -662,6 +662,31 @@ a{color:inherit; text-decoration:none}
   grid-template-columns: repeat(3, minmax(0,1fr));
   gap: 14px;
 }
+/* 公告列表：單欄較易閱讀多筆內容 */
+.ann-cards{
+  grid-template-columns: 1fr;
+  max-width: 920px;
+  margin: 0 auto;
+}
+.ann-error{
+  color: rgba(15,23,42,.72);
+  padding: 12px;
+  text-align: center;
+}
+
+/* 公告整卡可點，連到該則中文／英文詳情 */
+a.ann-card-link{
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+a.ann-card-link:hover .ann-card{
+  border-color: rgba(125,211,252,.24);
+}
+a.ann-card-link .ann-card-cta{
+  display: inline-flex;
+  margin-top: 4px;
+}
 .card{
   border-radius: 18px;
   border: 1px solid rgba(15,23,42,.10);
@@ -892,6 +917,120 @@ a{color:inherit; text-decoration:none}
 }
 .footer-links a:hover{ color: rgba(15,23,42,.92) }
 .footer-muted{ color: rgba(15,23,42,.56); line-height: 1.75; font-weight: 550 }
+
+/* Event highlights (活動集錦) */
+.highlights-list{
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+.highlights-empty{
+  margin: 0;
+  padding: 16px 18px;
+  border-radius: 16px;
+  border: 1px dashed rgba(15,23,42,.16);
+  background: rgba(255,255,255,.45);
+  color: rgba(15,23,42,.55);
+  font-weight: 600;
+  text-align: center;
+}
+.hl-item{
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 24px;
+  align-items: stretch;
+  border-radius: 22px;
+  border: 1px solid rgba(15,23,42,.10);
+  background: rgba(255,255,255,.82);
+  box-shadow: 0 14px 40px rgba(15, 23, 42, 0.08);
+  overflow: hidden;
+}
+.hl-item--reverse .hl-media{ order: 2; }
+.hl-item--reverse .hl-text{ order: 1; }
+.hl-media{
+  min-height: 220px;
+  background: linear-gradient(135deg, rgba(34,211,238,.10), rgba(167,139,250,.08));
+}
+.hl-photo{
+  width: 100%;
+  height: 100%;
+  min-height: 220px;
+  object-fit: cover;
+  display: block;
+}
+.hl-photo--ph{
+  object-fit: contain;
+  padding: 24px;
+  background: rgba(241,245,249,.9);
+}
+.hl-text{
+  padding: 22px 22px 22px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.hl-item--reverse .hl-text{
+  padding: 22px 8px 22px 22px;
+}
+.hl-title{
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 900;
+  letter-spacing: .02em;
+  line-height: 1.35;
+  color: rgba(15,23,42,.92);
+}
+.hl-body{
+  margin: 0;
+  flex: 1;
+}
+.hl-body p{
+  margin: 0;
+  line-height: 1.75;
+  color: rgba(15,23,42,.72);
+  font-weight: 550;
+  font-size: 15px;
+}
+.hl-readmore{
+  margin-top: 12px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(34,211,238,.35);
+  background: rgba(34,211,238,.12);
+  color: rgba(15,23,42,.85);
+  font-weight: 800;
+  font-size: 13px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.hl-readmore:hover{
+  border-color: rgba(34,211,238,.5);
+  background: rgba(34,211,238,.18);
+}
+.hl-detail{
+  margin-top: 4px;
+  font-size: 13px;
+  font-weight: 750;
+  color: rgba(59,130,246,.92);
+  text-decoration: none;
+  align-self: flex-start;
+}
+.hl-detail:hover{ text-decoration: underline }
+
+@media (max-width: 800px){
+  .hl-item,
+  .hl-item.hl-item--reverse{
+    grid-template-columns: 1fr;
+  }
+  .hl-item--reverse .hl-media,
+  .hl-item--reverse .hl-text{
+    order: unset;
+  }
+  .hl-text,
+  .hl-item--reverse .hl-text{
+    padding: 16px 18px 20px;
+  }
+}
 
 /* Responsive */
 @media (max-width: 980px){

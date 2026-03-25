@@ -1,0 +1,589 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>imMBA 活動集錦管理</title>
+    <style>
+      :root {
+        --bg: #0f172a;
+        --card: #1e293b;
+        --text: #f8fafc;
+        --muted: #94a3b8;
+        --danger: #f87171;
+        --accent: #a78bfa;
+        --border: #334155;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: system-ui, "Noto Sans TC", sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        padding: 20px;
+        line-height: 1.45;
+        font-size: 14px;
+      }
+      h1 {
+        margin: 0 0 6px;
+        font-size: 1.25rem;
+      }
+      h2 {
+        margin: 24px 0 12px;
+        font-size: 1rem;
+        color: var(--muted);
+        font-weight: 600;
+      }
+      .hint {
+        color: var(--muted);
+        margin: 0 0 16px;
+        font-size: 0.88rem;
+        max-width: 960px;
+      }
+      .toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+        margin: 16px 0;
+      }
+      label {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        font-size: 0.78rem;
+        color: var(--muted);
+      }
+      input[type="text"],
+      textarea {
+        width: 100%;
+        padding: 8px 10px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: #0b1220;
+        color: var(--text);
+        font-size: 13px;
+      }
+      textarea {
+        resize: vertical;
+        min-height: 100px;
+        font-family: inherit;
+      }
+      input.mono {
+        font-size: 12px;
+      }
+      button {
+        padding: 8px 16px;
+        border-radius: 8px;
+        border: none;
+        font-weight: 700;
+        cursor: pointer;
+        background: linear-gradient(135deg, #a78bfa, #22d3ee);
+        color: #0f172a;
+      }
+      button.secondary {
+        background: #334155;
+        color: var(--text);
+      }
+      button.danger {
+        background: var(--danger);
+        color: #0f172a;
+        padding: 6px 12px;
+        font-size: 12px;
+      }
+      .more-links {
+        margin: 0 0 12px;
+        color: var(--muted);
+        font-size: 0.88rem;
+      }
+      .more-links a {
+        color: var(--accent);
+        text-decoration: none;
+        margin-right: 14px;
+      }
+      .composer {
+        background: var(--card);
+        border-radius: 12px;
+        padding: 16px 18px;
+        border: 1px solid #7c3aed;
+        max-width: 1200px;
+        box-shadow: 0 0 0 1px rgba(124, 58, 237, 0.15);
+      }
+      .composer-title {
+        margin: 0 0 12px;
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--accent);
+      }
+      .pair {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+      @media (max-width: 720px) {
+        .pair {
+          grid-template-columns: 1fr;
+        }
+      }
+      .img-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: flex-end;
+        margin-bottom: 12px;
+      }
+      .img-row label {
+        flex: 1;
+        min-width: 200px;
+      }
+      .preview {
+        width: 200px;
+        height: 120px;
+        object-fit: cover;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: #0b1220;
+      }
+      .file-proto-warn {
+        background: rgba(248, 113, 113, 0.22);
+        color: #fecaca;
+        padding: 10px 12px;
+        border-radius: 8px;
+        margin-bottom: 12px;
+        max-width: 920px;
+        font-size: 0.88rem;
+      }
+      #list {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        max-width: 1200px;
+      }
+      .card-item {
+        background: var(--card);
+        border-radius: 12px;
+        padding: 14px 16px;
+        border: 1px solid #334155;
+      }
+      .card-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 12px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #334155;
+      }
+      .msg {
+        margin: 10px 0;
+        padding: 8px 10px;
+        border-radius: 8px;
+        font-size: 0.88rem;
+        max-width: 1200px;
+      }
+      .msg.ok {
+        background: rgba(34, 197, 94, 0.2);
+        color: #86efac;
+      }
+      .msg.err {
+        background: rgba(248, 113, 113, 0.2);
+        color: #fecaca;
+      }
+      .row-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>imMBA 活動集錦管理</h1>
+    <p id="fileProtoWarn" class="file-proto-warn" hidden></p>
+    <p class="hint">
+      每一則對應<strong>中英文公告內頁各一個網址</strong>。按下<strong>自網址抓取</strong>會帶入標題、內文與圖片（中文頁優先作為預設圖，可再上傳覆蓋）。首頁顯示約<strong>150
+      字</strong>，更長則出現「閱讀更多」。請用瀏覽器開啟
+      <code>http://127.0.0.1:8000/admin-highlights</code>
+      （<code>?api=</code> 用法同公告後台）。
+    </p>
+
+    <p class="more-links">
+      <a href="./admin">公告管理</a>
+      <a href="https://www.management.fju.edu.tw/subweb/immba/news.php" target="_blank" rel="noopener">中文公告列表</a>
+      <a href="https://www.management.fju.edu.tw/esubweb/immbaengindex/subindex.php" target="_blank" rel="noopener">英文列表</a>
+    </p>
+
+    <section class="composer" id="composer">
+      <p class="composer-title">新增一則（填完按「加入列表」）</p>
+      <div class="pair urls">
+        <label>中文公告網址<input type="text" id="newUrlZh" class="mono" autocomplete="off" placeholder="https://…/news-detail.php?NID=…" /></label>
+        <label>英文公告網址<input type="text" id="newUrlEn" class="mono" autocomplete="off" placeholder="https://…/news-detail.php?NID=…" /></label>
+      </div>
+      <div class="row-actions">
+        <button type="button" class="secondary" id="newBtnScrape">自網址抓取</button>
+      </div>
+      <div class="pair titles">
+        <label>中文標題<input type="text" id="newTitleZh" autocomplete="off" /></label>
+        <label>英文標題<input type="text" id="newTitleEn" autocomplete="off" /></label>
+      </div>
+      <div class="pair">
+        <label>中文內文<textarea id="newBodyZh" placeholder="公開頁約顯示 150 字後收合"></textarea></label>
+        <label>英文內文<textarea id="newBodyEn"></textarea></label>
+      </div>
+      <div class="img-row">
+        <label>圖片網址（可留空，以上傳為準）<input type="text" id="newImage" class="mono" placeholder="/uploads/highlights/… 或 https://…" /></label>
+        <label>上傳相片<input type="file" id="newFile" accept="image/jpeg,image/png,image/webp,image/gif" /></label>
+      </div>
+      <img id="newPreview" class="preview" alt="" hidden />
+      <div class="row-actions">
+        <button type="button" id="btnAppend">加入列表</button>
+      </div>
+    </section>
+
+    <div class="toolbar">
+      <button type="button" id="btnLoad" class="secondary">重新載入</button>
+      <button type="button" id="btnSave">儲存</button>
+    </div>
+
+    <div id="msg"></div>
+
+    <div>
+      <h2>已加入的活動集錦</h2>
+      <p class="hint" style="margin-top: -6px">列表<strong>由上到下</strong>對應首頁顯示順序（第 1 則左圖右文、第 2 則對調……）。</p>
+      <div id="list"></div>
+    </div>
+
+    <script>
+      const listEl = document.getElementById("list");
+      const msgEl = document.getElementById("msg");
+
+      function getApiOrigin() {
+        try {
+          const params = new URLSearchParams(window.location.search);
+          const o = (params.get("api") || "").trim();
+          if (o && /^https?:\/\//i.test(o)) return o.replace(/\/$/, "");
+          const proto = window.location.protocol;
+          if (proto === "file:" || proto === "blob:") return "http://127.0.0.1:8000";
+          return `${window.location.protocol}//${window.location.host}`;
+        } catch {
+          return "http://127.0.0.1:8000";
+        }
+      }
+      const API_ORIGIN = getApiOrigin();
+
+      if (window.location.protocol === "file:") {
+        const fp = document.getElementById("fileProtoWarn");
+        if (fp) {
+          fp.hidden = false;
+          fp.textContent =
+            "偵測到以本機檔案開啟，API 已指向 " +
+            API_ORIGIN +
+            "。建議改開：http://127.0.0.1:8000/admin-highlights";
+        }
+      }
+
+      function escAttr(s) {
+        return String(s ?? "")
+          .replace(/&/g, "&amp;")
+          .replace(/"/g, "&quot;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
+      }
+
+      function showMsg(text, ok) {
+        msgEl.textContent = "";
+        const div = document.createElement("div");
+        div.className = "msg " + (ok ? "ok" : "err");
+        div.textContent = text;
+        msgEl.appendChild(div);
+      }
+
+      function clearComposer() {
+        ["newUrlZh", "newUrlEn", "newTitleZh", "newTitleEn", "newBodyZh", "newBodyEn", "newImage"].forEach((id) => {
+          const el = document.getElementById(id);
+          if (el) el.value = "";
+        });
+        const f = document.getElementById("newFile");
+        if (f) f.value = "";
+        const pv = document.getElementById("newPreview");
+        if (pv) {
+          pv.hidden = true;
+          pv.removeAttribute("src");
+        }
+      }
+
+      async function scrapePair(urlZh, urlEn) {
+        const r = await fetch(API_ORIGIN + "/api/highlights/scrape", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ urlZh, urlEn }),
+        });
+        const data = await r.json();
+        return data;
+      }
+
+      async function uploadFile(file) {
+        const fd = new FormData();
+        fd.append("file", file);
+        const r = await fetch(API_ORIGIN + "/api/highlights/upload", {
+          method: "POST",
+          body: fd,
+        });
+        const data = await r.json();
+        if (!data.ok) throw new Error(data.error || "上傳失敗");
+        return data.url;
+      }
+
+      function applyScrapeToComposer(data) {
+        const warn = [data.warnZh, data.warnEn, data.errorZh, data.errorEn].filter(Boolean).join(" ");
+        if (warn) showMsg(warn, false);
+        if (data.titleZh) document.getElementById("newTitleZh").value = data.titleZh;
+        if (data.titleEn) document.getElementById("newTitleEn").value = data.titleEn;
+        if (data.bodyZh) document.getElementById("newBodyZh").value = data.bodyZh;
+        if (data.bodyEn) document.getElementById("newBodyEn").value = data.bodyEn;
+        const img = (data.imageZh || "").trim() || (data.imageEn || "").trim();
+        if (img) document.getElementById("newImage").value = img;
+        const pv = document.getElementById("newPreview");
+        const src = document.getElementById("newImage").value.trim();
+        if (src && /^https?:\/\//i.test(src)) {
+          pv.src = src;
+          pv.hidden = false;
+        } else if (src.startsWith("/")) {
+          pv.src = API_ORIGIN + src;
+          pv.hidden = false;
+        } else {
+          pv.hidden = true;
+        }
+      }
+
+      document.getElementById("newBtnScrape").addEventListener("click", async () => {
+        const urlZh = document.getElementById("newUrlZh").value.trim();
+        const urlEn = document.getElementById("newUrlEn").value.trim();
+        if (!urlZh && !urlEn) {
+          showMsg("請至少填一個公告網址。", false);
+          return;
+        }
+        try {
+          const data = await scrapePair(urlZh, urlEn);
+          applyScrapeToComposer(data);
+          showMsg("已自網址帶入內容（可再手動調整）。", true);
+        } catch (e) {
+          showMsg("抓取失敗：" + e.message, false);
+        }
+      });
+
+      document.getElementById("newFile").addEventListener("change", async (e) => {
+        const f = e.target.files && e.target.files[0];
+        if (!f) return;
+        try {
+          const url = await uploadFile(f);
+          document.getElementById("newImage").value = url;
+          const pv = document.getElementById("newPreview");
+          pv.src = API_ORIGIN + url;
+          pv.hidden = false;
+          showMsg("已上傳圖片。", true);
+        } catch (err) {
+          showMsg(err.message, false);
+        }
+      });
+
+      let currentMoreUrl = {
+        zh: "https://www.management.fju.edu.tw/subweb/immba/news.php",
+        en: "https://www.management.fju.edu.tw/esubweb/immbaengindex/subindex.php",
+      };
+
+      function normalizeHighlight(it) {
+        return {
+          id: (it.id || "").trim(),
+          urlZh: (it.urlZh || "").trim(),
+          urlEn: (it.urlEn || "").trim(),
+          titleZh: (it.titleZh || "").trim(),
+          titleEn: (it.titleEn || "").trim(),
+          bodyZh: (it.bodyZh || "").trim(),
+          bodyEn: (it.bodyEn || "").trim(),
+          image: (it.image || "").trim(),
+          imageZh: (it.imageZh || "").trim(),
+          imageEn: (it.imageEn || "").trim(),
+        };
+      }
+
+      function cardTemplate(item) {
+        const it = normalizeHighlight(item);
+        const el = document.createElement("article");
+        el.className = "card-item";
+        el.dataset.id = it.id;
+        el.innerHTML = `
+          <div class="card-head">
+            <span style="color:var(--muted);font-size:12px">編輯項目</span>
+            <button type="button" class="danger btn-del">刪除此筆</button>
+          </div>
+          <div class="pair urls">
+            <label>中文公告網址<input type="text" class="urlZh mono" value="${escAttr(it.urlZh)}" /></label>
+            <label>英文公告網址<input type="text" class="urlEn mono" value="${escAttr(it.urlEn)}" /></label>
+          </div>
+          <div class="row-actions">
+            <button type="button" class="secondary btn-scrape">自網址抓取</button>
+          </div>
+          <div class="pair titles">
+            <label>中文標題<input type="text" class="titleZh" value="${escAttr(it.titleZh)}" /></label>
+            <label>英文標題<input type="text" class="titleEn" value="${escAttr(it.titleEn)}" /></label>
+          </div>
+          <div class="pair">
+            <label>中文內文<textarea class="bodyZh">${escAttr(it.bodyZh)}</textarea></label>
+            <label>英文內文<textarea class="bodyEn">${escAttr(it.bodyEn)}</textarea></label>
+          </div>
+          <div class="img-row">
+            <label>圖片網址<input type="text" class="image mono" value="${escAttr(it.image)}" /></label>
+            <label>上傳替換<input type="file" class="file" accept="image/jpeg,image/png,image/webp,image/gif" /></label>
+          </div>
+          <img class="preview card-preview" alt="" hidden />
+        `;
+
+        const preview = el.querySelector(".card-preview");
+        const imgInput = el.querySelector(".image");
+        const syncPreview = () => {
+          const src = imgInput.value.trim();
+          if (src && /^https?:\/\//i.test(src)) {
+            preview.src = src;
+            preview.hidden = false;
+          } else if (src.startsWith("/")) {
+            preview.src = API_ORIGIN + src;
+            preview.hidden = false;
+          } else preview.hidden = true;
+        };
+        syncPreview();
+        imgInput.addEventListener("input", syncPreview);
+
+        el.querySelector(".btn-del").addEventListener("click", () => el.remove());
+        el.querySelector(".btn-scrape").addEventListener("click", async () => {
+          const urlZh = el.querySelector(".urlZh").value.trim();
+          const urlEn = el.querySelector(".urlEn").value.trim();
+          if (!urlZh && !urlEn) {
+            showMsg("請至少填一個公告網址。", false);
+            return;
+          }
+          try {
+            const data = await scrapePair(urlZh, urlEn);
+            if (data.titleZh) el.querySelector(".titleZh").value = data.titleZh;
+            if (data.titleEn) el.querySelector(".titleEn").value = data.titleEn;
+            if (data.bodyZh) el.querySelector(".bodyZh").value = data.bodyZh;
+            if (data.bodyEn) el.querySelector(".bodyEn").value = data.bodyEn;
+            const img = (data.imageZh || "").trim() || (data.imageEn || "").trim();
+            if (img) imgInput.value = img;
+            syncPreview();
+            showMsg("已更新此筆內容。", true);
+          } catch (e) {
+            showMsg(e.message, false);
+          }
+        });
+
+        el.querySelector(".file").addEventListener("change", async (ev) => {
+          const f = ev.target.files && ev.target.files[0];
+          if (!f) return;
+          try {
+            const url = await uploadFile(f);
+            imgInput.value = url;
+            syncPreview();
+            showMsg("已上傳圖片。", true);
+          } catch (err) {
+            showMsg(err.message, false);
+          }
+        });
+
+        return el;
+      }
+
+      function collectPayload() {
+        const items = [];
+        listEl.querySelectorAll(".card-item").forEach((el) => {
+          const urlZh = el.querySelector(".urlZh").value.trim();
+          const urlEn = el.querySelector(".urlEn").value.trim();
+          const titleZh = el.querySelector(".titleZh").value.trim();
+          const titleEn = el.querySelector(".titleEn").value.trim();
+          const bodyZh = el.querySelector(".bodyZh").value.trim();
+          const bodyEn = el.querySelector(".bodyEn").value.trim();
+          const image = el.querySelector(".image").value.trim();
+          if (!titleZh && !bodyZh && !urlZh && !urlEn && !image) return;
+          const prevId = (el.dataset.id || "").trim();
+          items.push({
+            id: prevId || "hl-" + Date.now() + "-" + Math.random().toString(16).slice(2, 8),
+            urlZh,
+            urlEn,
+            titleZh,
+            titleEn,
+            bodyZh,
+            bodyEn,
+            image,
+          });
+        });
+        return { moreUrl: currentMoreUrl, items };
+      }
+
+      async function load() {
+        msgEl.innerHTML = "";
+        try {
+          const r = await fetch(API_ORIGIN + "/api/highlights");
+          if (!r.ok) throw new Error("HTTP " + r.status);
+          const data = await r.json();
+          listEl.innerHTML = "";
+          clearComposer();
+          const m = data.moreUrl;
+          if (typeof m === "string") currentMoreUrl = { zh: m, en: m };
+          else if (m && typeof m === "object") {
+            currentMoreUrl = {
+              zh: m.zh || currentMoreUrl.zh,
+              en: m.en || currentMoreUrl.en,
+            };
+          }
+          (data.items || []).forEach((it) => listEl.appendChild(cardTemplate(it)));
+          showMsg("已載入 " + (data.items || []).length + " 則。", true);
+        } catch (e) {
+          showMsg("載入失敗：" + e.message, false);
+        }
+      }
+
+      async function save() {
+        try {
+          const r = await fetch(API_ORIGIN + "/api/highlights", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(collectPayload()),
+          });
+          if (!r.ok) throw new Error("HTTP " + r.status);
+          showMsg("已儲存。可重新整理首頁檢視活動集錦區。", true);
+        } catch (e) {
+          showMsg(e.message, false);
+        }
+      }
+
+      document.getElementById("btnLoad").addEventListener("click", load);
+      document.getElementById("btnSave").addEventListener("click", save);
+
+      document.getElementById("btnAppend").addEventListener("click", () => {
+        const row = normalizeHighlight({
+          urlZh: document.getElementById("newUrlZh").value.trim(),
+          urlEn: document.getElementById("newUrlEn").value.trim(),
+          titleZh: document.getElementById("newTitleZh").value.trim(),
+          titleEn: document.getElementById("newTitleEn").value.trim(),
+          bodyZh: document.getElementById("newBodyZh").value.trim(),
+          bodyEn: document.getElementById("newBodyEn").value.trim(),
+          image: document.getElementById("newImage").value.trim(),
+        });
+        if (!row.titleZh && !row.bodyZh && !row.urlZh && !row.urlEn && !row.image) {
+          showMsg("請至少填寫標題、內文或網址之一。", false);
+          return;
+        }
+        row.id = "hl-" + Date.now() + "-" + Math.random().toString(16).slice(2, 8);
+        listEl.insertBefore(cardTemplate(row), listEl.firstChild);
+        clearComposer();
+        showMsg("已加入列表頂端（請按儲存）", true);
+      });
+
+      load();
+    </script>
+  </body>
+</html>

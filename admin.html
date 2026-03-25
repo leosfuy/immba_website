@@ -1,0 +1,798 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>imMBA 公告管理</title>
+    <style>
+      :root {
+        --bg: #0f172a;
+        --card: #1e293b;
+        --text: #f8fafc;
+        --muted: #94a3b8;
+        --danger: #f87171;
+        --accent: #22d3ee;
+        --border: #334155;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: system-ui, "Noto Sans TC", sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        padding: 20px;
+        line-height: 1.45;
+        font-size: 14px;
+      }
+      h1 {
+        margin: 0 0 6px;
+        font-size: 1.25rem;
+      }
+      h2 {
+        margin: 24px 0 12px;
+        font-size: 1rem;
+        color: var(--muted);
+        font-weight: 600;
+      }
+      .hint {
+        color: var(--muted);
+        margin: 0 0 16px;
+        font-size: 0.88rem;
+        max-width: 920px;
+      }
+      .toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+        margin: 16px 0;
+      }
+      label {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        font-size: 0.78rem;
+        color: var(--muted);
+      }
+      input[type="text"] {
+        width: 100%;
+        padding: 8px 10px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: #0b1220;
+        color: var(--text);
+        font-size: 13px;
+      }
+      input.mono {
+        font-size: 12px;
+      }
+      button {
+        padding: 8px 16px;
+        border-radius: 8px;
+        border: none;
+        font-weight: 700;
+        cursor: pointer;
+        background: linear-gradient(135deg, #22d3ee, #a78bfa);
+        color: #0f172a;
+      }
+      button.secondary {
+        background: #334155;
+        color: var(--text);
+      }
+      button.danger {
+        background: var(--danger);
+        color: #0f172a;
+        padding: 6px 12px;
+        font-size: 12px;
+      }
+      .more-links {
+        margin: 0 0 12px;
+        color: var(--muted);
+        font-size: 0.88rem;
+      }
+      .more-links a {
+        color: var(--accent);
+        text-decoration: none;
+        margin-right: 14px;
+      }
+      .more-links a:hover {
+        text-decoration: underline;
+      }
+      .composer {
+        background: var(--card);
+        border-radius: 12px;
+        padding: 16px 18px;
+        border: 1px solid #3b82f6;
+        box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.15);
+        max-width: 1200px;
+      }
+      .composer-title {
+        margin: 0 0 12px;
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--accent);
+      }
+      .composer-actions {
+        margin-top: 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .composer-actions-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 12px;
+      }
+      .composer-actions-hint {
+        margin: 0;
+        font-size: 12px;
+        color: var(--muted);
+        line-height: 1.4;
+      }
+      #list {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        max-width: 1200px;
+      }
+      .card-item {
+        background: var(--card);
+        border-radius: 12px;
+        padding: 14px 16px;
+        border: 1px solid #334155;
+      }
+      .card-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 12px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #334155;
+      }
+      .pair {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+      @media (max-width: 720px) {
+        .pair {
+          grid-template-columns: 1fr;
+        }
+      }
+      .date-line {
+        margin: 0;
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .date-line strong {
+        color: var(--accent);
+        font-weight: 600;
+      }
+      .msg {
+        margin: 10px 0;
+        padding: 8px 10px;
+        border-radius: 8px;
+        font-size: 0.88rem;
+        max-width: 1200px;
+      }
+      .msg.ok {
+        background: rgba(34, 197, 94, 0.2);
+        color: #86efac;
+      }
+      .msg.err {
+        background: rgba(248, 113, 113, 0.2);
+        color: #fecaca;
+      }
+      .file-proto-warn {
+        background: rgba(248, 113, 113, 0.22);
+        color: #fecaca;
+        padding: 10px 12px;
+        border-radius: 8px;
+        margin-bottom: 12px;
+        max-width: 920px;
+        font-size: 0.88rem;
+        line-height: 1.45;
+      }
+      .list-section {
+        margin-top: 8px;
+      }
+      .top-toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0;
+        padding: 6px 12px;
+        border-radius: 8px;
+        background: #0b1220;
+        border: 1px solid #475569;
+        font-size: 12px;
+        color: var(--muted);
+        cursor: pointer;
+        user-select: none;
+      }
+      .top-toggle:hover {
+        border-color: #64748b;
+      }
+      .top-toggle input {
+        width: 15px;
+        height: 15px;
+        margin: 0;
+        accent-color: var(--accent);
+        cursor: pointer;
+      }
+      .top-toggle .top-label {
+        color: var(--accent);
+        font-weight: 700;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>imMBA 公告管理</h1>
+    <p id="fileProtoWarn" class="file-proto-warn" hidden></p>
+    <p class="hint">
+      最上方固定為<strong>新增一則公告</strong>：填好後按<strong>加入公告</strong>，該則會出現在「已加入的公告」的<strong>最上面</strong>（方便繼續編輯）；首頁實際排序仍為<strong>日期新→舊</strong>，勾選 <strong>TOP</strong> 則永遠排在最前。英文標題請優先貼<strong>英文公告網址</strong>後自動帶入官網標題；若無英文網址才用中文自動翻譯。最後按<strong>儲存</strong>寫入網站。<strong>中文公告網址</strong>可為任意外部
+      <code>http</code>/<code>https</code> 連結；日期會嘗試從網頁內容解析，若找不到則使用<strong>今日（臺北）</strong>。<strong>請用瀏覽器開啟</strong>
+      <code>http://127.0.0.1:8000/admin</code> 開啟；若用檔案雙擊開啟，請確認後台在
+      <code>8000</code> 埠執行，或於網址加上 <code>?api=http://127.0.0.1:你的埠</code>。<strong>活動集錦後台</strong>網址為
+      <code>/admin-highlights</code>（須同一台 <code>python3 server.py</code>，用 Live Server 僅開 HTML 會出現 404）。
+    </p>
+
+    <section class="composer" id="composer" aria-label="新增公告">
+      <p class="composer-title">新增公告（固定在此，填完按下方按鈕加入列表）</p>
+      <div class="pair titles">
+        <label>中文公告標題<input type="text" id="newTitleZh" autocomplete="off" placeholder="輸入中文標題" /></label>
+        <label>英文標題（貼英文網址後帶入官網標題；否則自動翻譯）<input type="text" id="newTitleEn" autocomplete="off" placeholder="英文標題" /></label>
+      </div>
+      <div class="pair urls">
+        <label>中文公告網址<input type="text" id="newUrlZh" class="mono" autocomplete="off" placeholder="https://…（可為站外連結）" /></label>
+        <label>英文公告網址<input type="text" id="newUrlEn" class="mono" autocomplete="off" placeholder="https://…（可為站外連結）" /></label>
+      </div>
+      <p class="date-line" id="newDateLine">日期（依中文網址）：<strong class="date-val">—</strong></p>
+      <p class="date-hint" id="newDateHint" style="font-size: 11px; color: var(--muted); margin: 6px 0 0"></p>
+      <div class="composer-actions">
+        <div class="composer-actions-row">
+          <label class="top-toggle">
+            <input type="checkbox" id="newTagTop" />
+            <span><span class="top-label">TOP</span> 置頂</span>
+          </label>
+          <button type="button" id="btnAppend">加入公告</button>
+        </div>
+        <p class="composer-actions-hint">
+          置頂項目在首頁會固定排在一般公告之上。新加入的項目在<strong>此列表最上方</strong>，請記得按「儲存」才會寫入首頁。
+        </p>
+      </div>
+    </section>
+
+    <div class="toolbar">
+      <button type="button" id="btnLoad" class="secondary">重新載入</button>
+      <button type="button" id="btnSave">儲存</button>
+    </div>
+
+    <p class="more-links">
+      更多公告：
+      <a id="moreUrlZhLink" href="https://www.management.fju.edu.tw/subweb/immba/news.php" target="_blank" rel="noopener">中文列表</a>
+      <a id="moreUrlEnLink" href="https://www.management.fju.edu.tw/esubweb/immbaengindex/subindex.php" target="_blank" rel="noopener">英文首頁／列表</a>
+      ·
+      <a href="/admin-highlights" target="_blank" rel="noopener">活動集錦管理</a>
+    </p>
+
+    <div id="msg"></div>
+
+    <div class="list-section">
+      <h2>已加入的公告</h2>
+      <div id="list"></div>
+    </div>
+
+    <script>
+      const listEl = document.getElementById("list");
+      const moreUrlZhLink = document.getElementById("moreUrlZhLink");
+      const moreUrlEnLink = document.getElementById("moreUrlEnLink");
+      const msgEl = document.getElementById("msg");
+      const newTitleZh = document.getElementById("newTitleZh");
+      const newTitleEn = document.getElementById("newTitleEn");
+      const newUrlZh = document.getElementById("newUrlZh");
+      const newUrlEn = document.getElementById("newUrlEn");
+      const newDateLine = document.getElementById("newDateLine");
+
+      let currentMoreUrl = {
+        zh: "https://www.management.fju.edu.tw/subweb/immba/news.php",
+        en: "https://www.management.fju.edu.tw/esubweb/immbaengindex/subindex.php",
+      };
+
+      function parseDateKeyAdmin(d) {
+        const m = String(d || "").match(/^(\d{4})\/(\d{2})\/(\d{2})/);
+        if (!m) return 0;
+        return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])).getTime();
+      }
+
+      /** 與首頁相同：TOP 在前，其餘日期新→舊 */
+      function sortItemsForAdmin(items) {
+        const arr = [...items];
+        const top = arr.filter((x) => (x.tag || "") === "TOP");
+        const rest = arr.filter((x) => (x.tag || "") !== "TOP");
+        const byDesc = (a, b) => parseDateKeyAdmin(b.date) - parseDateKeyAdmin(a.date);
+        top.sort(byDesc);
+        rest.sort(byDesc);
+        return [...top, ...rest];
+      }
+
+      function getApiOrigin() {
+        try {
+          const params = new URLSearchParams(window.location.search);
+          const o = (params.get("api") || "").trim();
+          if (o && /^https?:\/\//i.test(o)) {
+            return o.replace(/\/$/, "");
+          }
+          const proto = window.location.protocol;
+          if (proto === "file:" || proto === "blob:") {
+            return "http://127.0.0.1:8000";
+          }
+          return `${window.location.protocol}//${window.location.host}`;
+        } catch {
+          return "http://127.0.0.1:8000";
+        }
+      }
+      const API_ORIGIN = getApiOrigin();
+
+      if (window.location.protocol === "file:") {
+        const fp = document.getElementById("fileProtoWarn");
+        if (fp) {
+          fp.hidden = false;
+          fp.textContent =
+            "偵測到以本機檔案開啟後台，API 已指向 " +
+            API_ORIGIN +
+            "。建議改開：http://127.0.0.1:8000/admin ；若埠號不同請用 ?api=http://127.0.0.1:埠";
+        }
+      }
+
+      function escAttr(s) {
+        return String(s ?? "")
+          .replace(/&/g, "&amp;")
+          .replace(/"/g, "&quot;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
+      }
+
+      function showMsg(text, ok) {
+        msgEl.textContent = "";
+        const div = document.createElement("div");
+        div.className = "msg " + (ok ? "ok" : "err");
+        div.textContent = text;
+        msgEl.appendChild(div);
+      }
+
+      function debounce(fn, ms) {
+        let t;
+        return (...args) => {
+          clearTimeout(t);
+          t = setTimeout(() => fn(...args), ms);
+        };
+      }
+
+      function clearComposer() {
+        newTitleZh.value = "";
+        newTitleEn.value = "";
+        newUrlZh.value = "";
+        newUrlEn.value = "";
+        const nt = document.getElementById("newTagTop");
+        if (nt) nt.checked = false;
+        setDateDisplay(newDateLine, "");
+        const nh = document.getElementById("newDateHint");
+        if (nh) nh.textContent = "";
+      }
+
+      function isHttpUrl(u) {
+        return /^https?:\/\//i.test((u || "").trim());
+      }
+
+      async function translateText(text) {
+        const r = await fetch(`${API_ORIGIN}/api/translate`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: String(text ?? "").trim() }),
+        });
+        const raw = await r.text();
+        let data;
+        try {
+          data = raw ? JSON.parse(raw) : {};
+        } catch {
+          throw new Error(
+            "無法讀取翻譯 API（請確認已執行 python3 server.py，且可連線 " + API_ORIGIN + "）"
+          );
+        }
+        if (!data.ok) throw new Error(data.error || "翻譯失敗");
+        return data.text || "";
+      }
+
+      async function fetchEnglishTitle(url) {
+        const u = String(url || "").trim();
+        if (!u) return "";
+        const r = await fetch(`${API_ORIGIN}/api/announcements/fetch-title?url=${encodeURIComponent(u)}`);
+        const raw = await r.text();
+        let data;
+        try {
+          data = raw ? JSON.parse(raw) : {};
+        } catch {
+          throw new Error("無法讀取標題 API");
+        }
+        if (!data.ok) throw new Error(data.error || "無法取得標題");
+        return (data.title || "").trim();
+      }
+
+      async function fetchDateMeta(url) {
+        const u = String(url || "").trim();
+        const r = await fetch(
+          `${API_ORIGIN}/api/announcements/fetch-meta?url=${encodeURIComponent(u)}`
+        );
+        const raw = await r.text();
+        let data;
+        try {
+          data = raw ? JSON.parse(raw) : {};
+        } catch {
+          throw new Error("無法讀取日期 API（請確認後台在 " + API_ORIGIN + " 執行中）");
+        }
+        if (!data.ok) throw new Error(data.error || "無法取得日期");
+        return {
+          date: data.date,
+          hint: data.hint || "",
+          source: data.dateSource || "",
+        };
+      }
+
+      function setDateDisplay(el, dateStr, hintText) {
+        const strong = el.querySelector(".date-val");
+        if (dateStr && dateStr.trim()) {
+          strong.textContent = dateStr.trim();
+          el.dataset.date = dateStr.trim();
+        } else {
+          strong.textContent = "—";
+          delete el.dataset.date;
+        }
+        if (el.id === "newDateLine") {
+          const hintEl = document.getElementById("newDateHint");
+          if (hintEl) hintEl.textContent = hintText || "";
+        }
+      }
+
+      function normalizeRow(item) {
+        if (item.titleZh != null || item.urlZh != null) {
+          return {
+            id: item.id || "",
+            tag: item.tag || "",
+            titleZh: item.titleZh || "",
+            titleEn: item.titleEn || "",
+            date: item.date || "",
+            urlZh: item.urlZh || "",
+            urlEn: item.urlEn || "",
+          };
+        }
+        return {
+          id: item.id || "",
+          tag: item.tag || "",
+          titleZh: item.title || "",
+          titleEn: item.titleEn || item.title || "",
+          date: item.date || "",
+          urlZh: item.url || "",
+          urlEn: item.urlEn || "",
+        };
+      }
+
+      function cardTemplate(item) {
+        const it = normalizeRow(item);
+        const el = document.createElement("article");
+        el.className = "card-item";
+        el.dataset.id = it.id;
+        const d = it.date || "";
+        const topChecked = (it.tag || "") === "TOP" ? "checked" : "";
+        el.innerHTML = `
+          <div class="card-head">
+            <label class="top-toggle">
+              <input type="checkbox" class="tagTop" ${topChecked} />
+              <span><span class="top-label">TOP</span> 置頂</span>
+            </label>
+            <button type="button" class="danger btn-del">刪除此筆</button>
+          </div>
+          <div class="pair titles">
+            <label>中文公告標題<input type="text" class="titleZh" value="${escAttr(it.titleZh)}" placeholder="輸入中文標題" /></label>
+            <label>英文標題（貼英文網址後可帶入官網）<input type="text" class="titleEn" value="${escAttr(it.titleEn)}" placeholder="英文標題" /></label>
+          </div>
+          <div class="pair urls">
+            <label>中文公告網址<input type="text" class="urlZh mono" value="${escAttr(it.urlZh)}" placeholder="https://…/news-detail.php?NID=…" /></label>
+            <label>英文公告網址<input type="text" class="urlEn mono" value="${escAttr(it.urlEn)}" placeholder="https://…/immbaengindex/news-detail.php?NID=…" /></label>
+          </div>
+          <p class="date-line" data-date="${escAttr(d)}">日期（依中文網址）：<strong class="date-val">${d ? escAttr(d) : "—"}</strong></p>
+        `;
+
+        const titleZhEl = el.querySelector(".titleZh");
+        const titleEnEl = el.querySelector(".titleEn");
+        const urlZhEl = el.querySelector(".urlZh");
+        const urlEnEl = el.querySelector(".urlEn");
+        const dateLine = el.querySelector(".date-line");
+
+        if (d) {
+          dateLine.dataset.date = d;
+        }
+
+        el.querySelector(".btn-del").addEventListener("click", () => el.remove());
+
+        const runDateFromZhUrl = async () => {
+          const u = urlZhEl.value.trim();
+          if (!isHttpUrl(u)) return;
+          try {
+            const meta = await fetchDateMeta(u);
+            setDateDisplay(dateLine, meta.date, "");
+          } catch (_) {
+            setDateDisplay(dateLine, "", "");
+          }
+        };
+
+        urlZhEl.addEventListener("blur", runDateFromZhUrl);
+        urlZhEl.addEventListener(
+          "paste",
+          debounce(() => {
+            runDateFromZhUrl();
+          }, 300)
+        );
+
+        const runTitleFromEnUrl = async () => {
+          const u = urlEnEl.value.trim();
+          if (!isHttpUrl(u)) return;
+          try {
+            const t = await fetchEnglishTitle(u);
+            if (t) titleEnEl.value = t;
+          } catch (_) {}
+        };
+        urlEnEl.addEventListener("blur", runTitleFromEnUrl);
+        urlEnEl.addEventListener("paste", debounce(runTitleFromEnUrl, 400));
+
+        async function tryCardTranslate() {
+          const zh = titleZhEl.value.trim();
+          if (!zh || titleEnEl.value.trim()) return;
+          if (urlEnEl.value.trim()) return;
+          try {
+            titleEnEl.value = await translateText(zh);
+          } catch (e) {
+            showMsg("自動翻譯失敗：" + e.message, false);
+          }
+        }
+        titleZhEl.addEventListener("input", debounce(tryCardTranslate, 600));
+        titleZhEl.addEventListener("blur", tryCardTranslate);
+
+        return el;
+      }
+
+      function collectPayload() {
+        const items = [];
+        listEl.querySelectorAll(".card-item").forEach((el) => {
+          const titleZh = el.querySelector(".titleZh").value.trim();
+          const titleEn = el.querySelector(".titleEn").value.trim();
+          const dateLine = el.querySelector(".date-line");
+          const date = (dateLine.dataset.date || "").trim();
+          const urlZh = el.querySelector(".urlZh").value.trim();
+          const urlEn = el.querySelector(".urlEn").value.trim();
+          const tagTop = el.querySelector(".tagTop");
+          const tag = tagTop && tagTop.checked ? "TOP" : "";
+          if (!titleZh && !urlZh && !urlEn && !titleEn) return;
+          const prevId = (el.dataset.id || "").trim();
+          items.push({
+            id: prevId || String(Date.now()) + Math.random().toString(16).slice(2),
+            tag,
+            titleZh,
+            titleEn: titleEn || titleZh,
+            date,
+            urlZh,
+            urlEn,
+          });
+        });
+        return {
+          moreUrl: currentMoreUrl,
+          source: "https://www.management.fju.edu.tw/subweb/immba/",
+          items,
+        };
+      }
+
+      async function load() {
+        msgEl.innerHTML = "";
+        try {
+          const r = await fetch(`${API_ORIGIN}/api/announcements`);
+          if (!r.ok) throw new Error("HTTP " + r.status);
+          const data = await r.json();
+          listEl.innerHTML = "";
+          clearComposer();
+          const m = data.moreUrl;
+          if (typeof m === "string") currentMoreUrl = { zh: m, en: m };
+          else if (m && typeof m === "object") {
+            currentMoreUrl = {
+              zh: m.zh || "https://www.management.fju.edu.tw/subweb/immba/news.php",
+              en: m.en || "https://www.management.fju.edu.tw/esubweb/immbaengindex/subindex.php",
+            };
+          }
+          moreUrlZhLink.href = currentMoreUrl.zh;
+          moreUrlEnLink.href = currentMoreUrl.en;
+          sortItemsForAdmin(data.items || []).forEach((it) => listEl.appendChild(cardTemplate(it)));
+          const n = (data.items || []).length;
+          showMsg("已載入 " + n + " 筆。", true);
+        } catch (e) {
+          showMsg("載入失敗：請在專案目錄執行 python3 server.py（埠 8000）。 " + e.message, false);
+        }
+      }
+
+      async function save() {
+        const cards = [...listEl.querySelectorAll(".card-item")];
+        for (const el of cards) {
+          const titleZh = el.querySelector(".titleZh").value.trim();
+          const titleEnEl = el.querySelector(".titleEn");
+          let titleEn = titleEnEl.value.trim();
+          const urlZh = el.querySelector(".urlZh").value.trim();
+          const urlEn = el.querySelector(".urlEn").value.trim();
+          const dateLine = el.querySelector(".date-line");
+
+          const hasContent = !!(titleZh || urlZh || urlEn || titleEn);
+          if (!hasContent) continue;
+
+          if (urlEn && isHttpUrl(urlEn)) {
+            try {
+              const official = await fetchEnglishTitle(urlEn);
+              if (official) {
+                titleEnEl.value = official;
+                titleEn = official;
+              }
+            } catch (_) {}
+          }
+          if (titleZh && !titleEnEl.value.trim()) {
+            try {
+              titleEn = await translateText(titleZh);
+              titleEnEl.value = titleEn;
+            } catch (e) {
+              showMsg("英文標題翻譯失敗，請手動填英文標題後再儲存：" + e.message, false);
+              return;
+            }
+          }
+
+          if (!urlZh) {
+            showMsg("列表中每一筆有內容的公告都請填「中文公告網址」，系統才能帶入日期。", false);
+            return;
+          }
+          try {
+            const meta = await fetchDateMeta(urlZh);
+            setDateDisplay(dateLine, meta.date, "");
+          } catch (e) {
+            showMsg("無法從中文網址取得日期（請確認網址為 http/https 且可連線）：" + e.message, false);
+            return;
+          }
+        }
+
+        try {
+          const r = await fetch(`${API_ORIGIN}/api/announcements`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(collectPayload()),
+          });
+          if (!r.ok) throw new Error("HTTP " + r.status);
+          showMsg("已儲存。重新整理首頁即可看到公告與連結。", true);
+        } catch (e) {
+          showMsg(e.message, false);
+        }
+      }
+
+      async function appendFromComposer() {
+        let titleZh = newTitleZh.value.trim();
+        let titleEn = newTitleEn.value.trim();
+        const urlZh = newUrlZh.value.trim();
+        const urlEn = newUrlEn.value.trim();
+        const tag = document.getElementById("newTagTop").checked ? "TOP" : "";
+
+        if (!titleZh && !urlZh && !urlEn) {
+          showMsg("請至少填寫中文標題或網址。", false);
+          return;
+        }
+
+        if (!urlZh) {
+          showMsg("請填「中文公告網址」，系統才能帶入日期。", false);
+          return;
+        }
+
+        let dateStr;
+        let dateHint = "";
+        try {
+          const meta = await fetchDateMeta(urlZh);
+          dateStr = meta.date;
+          dateHint = meta.hint || (meta.source === "fallback" ? "頁面未標示日期，已用今日（臺北）" : "");
+          setDateDisplay(newDateLine, dateStr, dateHint);
+        } catch (e) {
+          showMsg("無法從中文網址取得日期：" + e.message, false);
+          return;
+        }
+
+        if (urlEn && isHttpUrl(urlEn)) {
+          try {
+            const official = await fetchEnglishTitle(urlEn);
+            if (official) {
+              titleEn = official;
+              newTitleEn.value = official;
+            }
+          } catch (e) {
+            showMsg("無法從英文網址取得官網標題，將改以中文翻譯：" + e.message, false);
+          }
+        }
+        if (!titleEn && titleZh) {
+          try {
+            titleEn = await translateText(titleZh);
+            newTitleEn.value = titleEn;
+          } catch (e) {
+            showMsg("英文標題翻譯失敗，請手動填英文標題後再按「加入公告」：" + e.message, false);
+            return;
+          }
+        }
+
+        const card = cardTemplate({
+          id: "",
+          tag,
+          titleZh,
+          titleEn: titleEn || titleZh,
+          date: dateStr,
+          urlZh,
+          urlEn,
+        });
+        if (listEl.firstChild) {
+          listEl.insertBefore(card, listEl.firstChild);
+        } else {
+          listEl.appendChild(card);
+        }
+        clearComposer();
+        setDateDisplay(newDateLine, "");
+        showMsg("已加入列表（最上方）。請按「儲存」寫入網站。", true);
+      }
+
+      async function tryComposerTranslate() {
+        const zh = newTitleZh.value.trim();
+        if (!zh || newTitleEn.value.trim()) return;
+        if (newUrlEn.value.trim()) return;
+        try {
+          newTitleEn.value = await translateText(zh);
+        } catch (e) {
+          showMsg("自動翻譯失敗：" + e.message, false);
+        }
+      }
+      newTitleZh.addEventListener("input", debounce(tryComposerTranslate, 600));
+      newTitleZh.addEventListener("blur", tryComposerTranslate);
+
+      const runComposerEnTitle = async () => {
+        const u = newUrlEn.value.trim();
+        if (!isHttpUrl(u)) return;
+        try {
+          const t = await fetchEnglishTitle(u);
+          if (t) newTitleEn.value = t;
+        } catch (_) {}
+      };
+      newUrlEn.addEventListener("blur", runComposerEnTitle);
+      newUrlEn.addEventListener("paste", debounce(runComposerEnTitle, 400));
+
+      const runComposerDate = async () => {
+        const u = newUrlZh.value.trim();
+        if (!isHttpUrl(u)) return;
+        try {
+          const meta = await fetchDateMeta(u);
+          const hint = meta.hint || (meta.source === "fallback" ? "頁面未標示日期，已用今日（臺北）" : "");
+          setDateDisplay(newDateLine, meta.date, hint);
+        } catch (_) {
+          setDateDisplay(newDateLine, "", "");
+        }
+      };
+      newUrlZh.addEventListener("blur", runComposerDate);
+      newUrlZh.addEventListener("paste", debounce(runComposerDate, 300));
+
+      document.getElementById("btnLoad").addEventListener("click", load);
+      document.getElementById("btnSave").addEventListener("click", save);
+      document.getElementById("btnAppend").addEventListener("click", appendFromComposer);
+
+      load();
+    </script>
+  </body>
+</html>

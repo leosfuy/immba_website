@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -15,7 +15,7 @@
       href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./assets/styles.css" />
+    <link rel="stylesheet" href="./assets/styles.css?v=3" />
     <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml" />
   </head>
   <body>
@@ -72,9 +72,6 @@
             <li class="nav-item"><a class="nav-link" href="#gallery">Gallery</a></li>
             <li class="nav-item"><a class="nav-link" href="#news">News</a></li>
 
-            <li class="nav-item nav-item--right">
-              <a class="nav-pill" href="#downloads">Downloads</a>
-            </li>
             <li class="nav-item">
               <a class="nav-pill nav-pill--ghost lang-switch" href="./index.html">中文</a>
             </li>
@@ -182,54 +179,11 @@
       <section id="gallery" class="section section--alt">
         <div class="shell">
           <div class="section-head">
-            <h2 class="section-title">Gallery</h2>
-            <a class="section-link" href="#more-gallery">More</a>
+            <h2 class="section-title" data-i18n="highlights.title">Highlights</h2>
+            <a class="section-link" id="highlights-more-link" href="#" data-i18n="highlights.more">More stories</a>
           </div>
-
-          <div class="gallery">
-            <a class="tile" href="#g1" aria-label="Photo 1">
-              <div class="tile-bg tile-bg--1"></div>
-              <div class="tile-overlay">
-                <div class="tile-title">imMBA</div>
-                <div class="tile-subtitle">Campus moments</div>
-              </div>
-            </a>
-            <a class="tile" href="#g2" aria-label="Photo 2">
-              <div class="tile-bg tile-bg--2"></div>
-              <div class="tile-overlay">
-                <div class="tile-title">imMBA</div>
-                <div class="tile-subtitle">Global lens</div>
-              </div>
-            </a>
-            <a class="tile" href="#g3" aria-label="Photo 3">
-              <div class="tile-bg tile-bg--3"></div>
-              <div class="tile-overlay">
-                <div class="tile-title">imMBA</div>
-                <div class="tile-subtitle">Team energy</div>
-              </div>
-            </a>
-            <a class="tile" href="#g4" aria-label="Photo 4">
-              <div class="tile-bg tile-bg--4"></div>
-              <div class="tile-overlay">
-                <div class="tile-title">imMBA</div>
-                <div class="tile-subtitle">Learning flow</div>
-              </div>
-            </a>
-            <a class="tile" href="#g5" aria-label="Photo 5">
-              <div class="tile-bg tile-bg--5"></div>
-              <div class="tile-overlay">
-                <div class="tile-title">imMBA</div>
-                <div class="tile-subtitle">Night lights</div>
-              </div>
-            </a>
-            <a class="tile" href="#g6" aria-label="Photo 6">
-              <div class="tile-bg tile-bg--6"></div>
-              <div class="tile-overlay">
-                <div class="tile-title">imMBA</div>
-                <div class="tile-subtitle">Future-ready</div>
-              </div>
-            </a>
-          </div>
+          <div id="highlights-root" class="highlights-list" aria-live="polite"></div>
+          <p id="highlights-empty" class="highlights-empty" hidden data-i18n="highlights.empty">No highlights yet.</p>
         </div>
       </section>
 
@@ -323,30 +277,6 @@
         </div>
       </section>
 
-      <section id="downloads" class="section section--alt">
-        <div class="shell">
-          <div class="section-head">
-            <h2 class="section-title">Downloads</h2>
-            <p class="section-desc">Same entry point, now presented in modern cards.</p>
-          </div>
-
-          <div class="downloads">
-            <a class="download" href="#d1">
-              <div class="download-title">Application form (sample)</div>
-              <div class="download-meta">PDF · 250KB</div>
-            </a>
-            <a class="download" href="#d2">
-              <div class="download-title">Study plan (sample)</div>
-              <div class="download-meta">XLSX · 120KB</div>
-            </a>
-            <a class="download" href="#d3">
-              <div class="download-title">Graduation checklist (sample)</div>
-              <div class="download-meta">DOCX · 80KB</div>
-            </a>
-          </div>
-        </div>
-      </section>
-
       <section id="lang" class="section">
         <div class="shell">
           <div class="section-head">
@@ -379,6 +309,7 @@
       </div>
     </footer>
 
+    <script src="./assets/highlights.js?v=1" defer></script>
     <script src="./assets/app.js" defer></script>
   </body>
 </html>

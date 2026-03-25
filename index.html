@@ -15,7 +15,7 @@
       href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./assets/styles.css?v=2" />
+    <link rel="stylesheet" href="./assets/styles.css?v=3" />
     <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml" />
   </head>
   <body>
@@ -90,10 +90,6 @@
             <li class="nav-item"><a class="nav-link" href="#dual" data-i18n="nav.dual">跨國雙碩士</a></li>
             <li class="nav-item"><a class="nav-link" href="#exchange" data-i18n="nav.exchange">海外交換</a></li>
             <li class="nav-item"><a class="nav-link" href="#gallery" data-i18n="nav.gallery">活動集錦</a></li>
-
-            <li class="nav-item nav-item--right">
-              <a class="nav-pill" href="#downloads" data-i18n="nav.downloads">表格下載</a>
-            </li>
           </ul>
           </nav>
         </div>
@@ -145,85 +141,38 @@
         <div class="shell">
           <div class="section-head">
             <h2 class="section-title" data-i18n="news.title">最新公告</h2>
-            <a class="section-link" href="#more-news" data-i18n="news.more">更多公告</a>
+            <a
+              id="news-more-link"
+              class="section-link"
+              href="https://www.management.fju.edu.tw/subweb/immba/news.php"
+              target="_blank"
+              rel="noopener noreferrer"
+              data-i18n="news.more"
+              >更多公告</a
+            >
           </div>
 
-          <div class="cards">
-            <article class="card">
-              <div class="tag">TOP</div>
-              <h3 class="card-title" data-i18n="news.item1.title">（國際經管-全英MBA）115碩士招生口試通知</h3>
-              <p class="card-meta">2026/03/09</p>
-              <a class="card-cta" href="#news-1" data-i18n="news.details">查看詳情</a>
-            </article>
-
-            <article class="card">
-              <div class="tag tag--alt" data-i18n="news.tagAdmissions">招生</div>
-              <h3 class="card-title" data-i18n="news.item2.title">Fall 2026 外國學生申請入學：第一梯次</h3>
-              <p class="card-meta">2026/02/09 – 2026/03/05</p>
-              <a class="card-cta" href="#news-2" data-i18n="news.details">查看詳情</a>
-            </article>
-
-            <article class="card">
-              <div class="tag tag--soft" data-i18n="news.tagEvent">活動</div>
-              <h3 class="card-title" data-i18n="news.item3.title">上週末的輔大開箱日，你也來逛校園了嗎？</h3>
-              <p class="card-meta">2026/03/11</p>
-              <a class="card-cta" href="#news-3" data-i18n="news.details">查看詳情</a>
-            </article>
-          </div>
+          <div id="announcements-root" class="cards ann-cards" aria-live="polite"></div>
         </div>
       </section>
 
       <section id="gallery" class="section section--alt">
         <div class="shell">
           <div class="section-head">
-            <h2 class="section-title" data-i18n="gallery.title">相片集錦</h2>
-            <a class="section-link" href="#more-gallery" data-i18n="gallery.more">更多相片</a>
+            <h2 class="section-title" data-i18n="highlights.title">活動集錦</h2>
+            <a
+              class="section-link"
+              id="highlights-more-link"
+              href="#"
+              data-i18n="highlights.more"
+              >更多活動</a
+            >
           </div>
 
-          <div class="gallery">
-            <a class="tile" href="#g1" aria-label="相片 1">
-              <div class="tile-bg tile-bg--1"></div>
-              <div class="tile-overlay">
-                <div class="tile-title">imMBA</div>
-                <div class="tile-subtitle">Campus moments</div>
-              </div>
-            </a>
-            <a class="tile" href="#g2" aria-label="相片 2">
-              <div class="tile-bg tile-bg--2"></div>
-              <div class="tile-overlay">
-                <div class="tile-title">imMBA</div>
-                <div class="tile-subtitle">Global lens</div>
-              </div>
-            </a>
-            <a class="tile" href="#g3" aria-label="相片 3">
-              <div class="tile-bg tile-bg--3"></div>
-              <div class="tile-overlay">
-                <div class="tile-title">imMBA</div>
-                <div class="tile-subtitle">Team energy</div>
-              </div>
-            </a>
-            <a class="tile" href="#g4" aria-label="相片 4">
-              <div class="tile-bg tile-bg--4"></div>
-              <div class="tile-overlay">
-                <div class="tile-title">imMBA</div>
-                <div class="tile-subtitle">Learning flow</div>
-              </div>
-            </a>
-            <a class="tile" href="#g5" aria-label="相片 5">
-              <div class="tile-bg tile-bg--5"></div>
-              <div class="tile-overlay">
-                <div class="tile-title">imMBA</div>
-                <div class="tile-subtitle">Night lights</div>
-              </div>
-            </a>
-            <a class="tile" href="#g6" aria-label="相片 6">
-              <div class="tile-bg tile-bg--6"></div>
-              <div class="tile-overlay">
-                <div class="tile-title">imMBA</div>
-                <div class="tile-subtitle">Future-ready</div>
-              </div>
-            </a>
-          </div>
+          <div id="highlights-root" class="highlights-list" aria-live="polite"></div>
+          <p id="highlights-empty" class="highlights-empty" hidden data-i18n="highlights.empty">
+            尚無活動集錦，管理員可在後台新增。
+          </p>
         </div>
       </section>
 
@@ -317,30 +266,6 @@
         </div>
       </section>
 
-      <section id="downloads" class="section section--alt">
-        <div class="shell">
-          <div class="section-head">
-            <h2 class="section-title" data-i18n="downloads.title">表格下載</h2>
-            <p class="section-desc" data-i18n="downloads.desc">維持「表格下載」入口，但以更現代的卡片式呈現。</p>
-          </div>
-
-          <div class="downloads">
-            <a class="download" href="#d1">
-              <div class="download-title" data-i18n="downloads.item1">申請表（示意）</div>
-              <div class="download-meta">PDF · 250KB</div>
-            </a>
-            <a class="download" href="#d2">
-              <div class="download-title" data-i18n="downloads.item2">修課規劃表（示意）</div>
-              <div class="download-meta">XLSX · 120KB</div>
-            </a>
-            <a class="download" href="#d3">
-              <div class="download-title" data-i18n="downloads.item3">離校流程（示意）</div>
-              <div class="download-meta">DOCX · 80KB</div>
-            </a>
-          </div>
-        </div>
-      </section>
-
       <!-- language switch is in the top navigation -->
     </main>
 
@@ -363,6 +288,8 @@
       </div>
     </footer>
 
+    <script src="./assets/announcements.js?v=5" defer></script>
+    <script src="./assets/highlights.js?v=1" defer></script>
     <script src="./assets/app.js" defer></script>
   </body>
 </html>
