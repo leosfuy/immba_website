@@ -18,9 +18,24 @@
     return document.documentElement.getAttribute("data-lang") === "en" ? "en" : "zh";
   }
 
-  async function loadData() {
+  function getApiOrigin() {
     try {
-      const r = await fetch("/api/announcements");
+      const params = new URLSearchParams(window.location.search);
+      const o = (params.get("api") || "").trim();
+      if (o && /^https?:\/\//i.test(o)) return o.replace(/\/$/, "");
+      const proto = window.location.protocol;
+      if (proto === "file:" || proto === "blob:") return "http://127.0.0.1:8099";
+      return "";
+    } catch {
+      return "http://127.0.0.1:8099";
+    }
+  }
+
+  async function loadData() {
+    const origin = getApiOrigin();
+    const apiPath = origin ? `${origin}/api/announcements` : "/api/announcements";
+    try {
+      const r = await fetch(apiPath);
       if (r.ok) return await r.json();
     } catch (_) {
       /* ignore */

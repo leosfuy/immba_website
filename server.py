@@ -5,16 +5,22 @@
   cd /Users/leeangel/Desktop/2
   pip install -r requirements.txt
   python3 server.py
-預設埠 8000：http://localhost:8000/
-後台：http://localhost:8000/admin
+預設埠 8099（避開常與其他程式衝突的 8000）：http://127.0.0.1:8099/
+總後台：http://127.0.0.1:8099/hub.html（另有 /admin-hub.html、/manage.html）
+後台：http://127.0.0.1:8099/admin.html
 
-若對外開放，請在反向代理或防火牆層限制 /admin、/admin-highlights 與 PUT /api/*。
+若對外開放，請在反向代理或防火牆層限制 /admin-hub、/admin、/admin-highlights 與 PUT /api/*。
+
+啟動時會自動開啟瀏覽器至首頁（可點 logo 進總後台）；設 IMMBA_NO_BROWSER=1 可關閉。設 IMMBA_OPEN=hub 則改開 /hub.html。
 """
 import html as html_lib
 import json
 import os
 import re
+import socket
 import ssl
+import threading
+import webbrowser
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -272,12 +278,34 @@ def _save_data(data):
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 
+@app.get("/immba-ready")
+def immba_ready():
+    """辨識是否為本專案伺服器（若連到別的程式在 8000 會沒有此路徑）。"""
+    return Response("immba-ok\n", mimetype="text/plain; charset=utf-8")
+
+
 @app.get("/")
+@app.get("/index.html")
 def index():
     return send_from_directory(ROOT, "index.html")
 
 
+@app.route("/admin-hub", methods=["GET"])
+@app.route("/admin-hub/", methods=["GET"])
+@app.route("/admin-hub.html", methods=["GET"])
+@app.route("/hub", methods=["GET"])
+@app.route("/hub/", methods=["GET"])
+@app.route("/hub.html", methods=["GET"])
+@app.route("/manage", methods=["GET"])
+@app.route("/manage/", methods=["GET"])
+@app.route("/manage.html", methods=["GET"])
+def admin_hub_page():
+    """總後台（多個網址避免打錯；須由 python3 server.py 啟動）。"""
+    return send_from_directory(ROOT, "admin-hub.html")
+
+
 @app.get("/admin")
+@app.get("/admin.html")
 def admin_page():
     return send_from_directory(ROOT, "admin.html")
 
@@ -570,9 +598,78 @@ def admin_highlights_page():
     return send_from_directory(ROOT, "admin-highlights.html")
 
 
+def _open_default_browser(url: str) -> None:
+    """啟動後略等再開瀏覽器，方便直接由首頁 logo 進總後台。設 IMMBA_NO_BROWSER=1 可關閉。"""
+    if os.environ.get("IMMBA_NO_BROWSER", "").strip().lower() in ("1", "true", "yes", "on"):
+        return
+
+    def _run():
+        import time
+
+        time.sleep(0.85)
+        try:
+            webbrowser.open(url)
+        except Exception:
+            pass
+
+    threading.Thread(target=_run, daemon=True).start()
+
+
+def _pick_listen_port(preferred: int, port_explicit: bool) -> int:
+    """未手動指定 PORT 時，若 preferred 被占用則往後試下一個埠…"""
+    if port_explicit:
+        return preferred
+    for p in range(preferred, preferred + 16):
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                s.bind(("0.0.0.0", p))
+        except OSError:
+            continue
+        return p
+    raise SystemExit(
+        f"無法綁定埠 {preferred}–{preferred + 15}（可能都被占用）。"
+        f"請關閉占用程式，或執行：PORT=9000 python3 server.py"
+    )
+
+
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", "8000"))
-    print(f"imMBA 伺服器已啟動：http://127.0.0.1:{port}/  （同 http://localhost:{port}/）")
-    print(f"後台：http://127.0.0.1:{port}/admin")
-    print(f"活動集錦後台：http://127.0.0.1:{port}/admin-highlights")
-    app.run(host="0.0.0.0", port=port, debug=False)
+    port_explicit = "PORT" in os.environ
+    try:
+        preferred = int(os.environ.get("PORT", "8099"))
+    except ValueError:
+        raise SystemExit(f"環境變數 PORT 必須為整數，目前為：{os.environ.get('PORT')!r}")
+
+    try:
+        port = _pick_listen_port(preferred, port_explicit)
+    except SystemExit:
+        raise
+
+    if not port_explicit and port != preferred:
+        print(f"[!] 埠 {preferred} 已被占用，已自動改用 {port}")
+
+    host = (os.environ.get("IMMBA_HOST") or "0.0.0.0").strip()
+    print("imMBA 伺服器已啟動（請保持此視窗開啟，關閉即停止網站）：")
+    print(f"  · http://127.0.0.1:{port}/")
+    print(f"  · http://localhost:{port}/")
+    base = f"http://127.0.0.1:{port}"
+    print("總後台（擇一貼到瀏覽器）:")
+    print(f"  {base}/hub.html")
+    print(f"  {base}/admin-hub.html")
+    print(f"  {base}/manage.html")
+    print(f"後台（公告）：{base}/admin.html")
+    print(f"活動集錦：{base}/admin-highlights.html")
+    print(f"辨識是否為本站：{base}/immba-ready （應出現一行 immba-ok）")
+    start_path = "/"
+    if os.environ.get("IMMBA_OPEN", "").strip().lower() == "hub":
+        start_path = "/hub.html"
+    start_url = f"http://127.0.0.1:{port}{start_path}"
+    print(f"即將自動開啟瀏覽器：{start_url}（設 IMMBA_NO_BROWSER=1 可關閉）")
+    _open_default_browser(start_url)
+    try:
+        app.run(host=host, port=port, debug=False, threaded=True)
+    except OSError as e:
+        print(f"啟動失敗：{e}")
+        if port_explicit:
+            print("請改用其他埠，例如：PORT=9000 python3 server.py")
+        raise SystemExit(1) from e

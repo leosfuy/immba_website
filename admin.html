@@ -238,8 +238,8 @@
     <p class="hint">
       最上方固定為<strong>新增一則公告</strong>：填好後按<strong>加入公告</strong>，該則會出現在「已加入的公告」的<strong>最上面</strong>（方便繼續編輯）；首頁實際排序仍為<strong>日期新→舊</strong>，勾選 <strong>TOP</strong> 則永遠排在最前。英文標題請優先貼<strong>英文公告網址</strong>後自動帶入官網標題；若無英文網址才用中文自動翻譯。最後按<strong>儲存</strong>寫入網站。<strong>中文公告網址</strong>可為任意外部
       <code>http</code>/<code>https</code> 連結；日期會嘗試從網頁內容解析，若找不到則使用<strong>今日（臺北）</strong>。<strong>請用瀏覽器開啟</strong>
-      <code>http://127.0.0.1:8000/admin</code> 開啟；若用檔案雙擊開啟，請確認後台在
-      <code>8000</code> 埠執行，或於網址加上 <code>?api=http://127.0.0.1:你的埠</code>。<strong>活動集錦後台</strong>網址為
+      <code>http://127.0.0.1:8099/admin.html</code> 開啟；若用檔案雙擊開啟，請確認後台在
+      <code>8099</code> 埠執行（預設），或於網址加上 <code>?api=http://127.0.0.1:你的埠</code>。<strong>活動集錦後台</strong>網址為
       <code>/admin-highlights</code>（須同一台 <code>python3 server.py</code>，用 Live Server 僅開 HTML 會出現 404）。
     </p>
 
@@ -275,11 +275,13 @@
     </div>
 
     <p class="more-links">
+      <a href="hub.html" target="_parent" rel="noopener">總後台</a>
+      ·
       更多公告：
       <a id="moreUrlZhLink" href="https://www.management.fju.edu.tw/subweb/immba/news.php" target="_blank" rel="noopener">中文列表</a>
       <a id="moreUrlEnLink" href="https://www.management.fju.edu.tw/esubweb/immbaengindex/subindex.php" target="_blank" rel="noopener">英文首頁／列表</a>
       ·
-      <a href="/admin-highlights" target="_blank" rel="noopener">活動集錦管理</a>
+      <a href="admin-highlights" target="_parent" rel="noopener">活動集錦管理</a>
     </p>
 
     <div id="msg"></div>
@@ -331,11 +333,11 @@
           }
           const proto = window.location.protocol;
           if (proto === "file:" || proto === "blob:") {
-            return "http://127.0.0.1:8000";
+            return "http://127.0.0.1:8099";
           }
           return `${window.location.protocol}//${window.location.host}`;
         } catch {
-          return "http://127.0.0.1:8000";
+          return "http://127.0.0.1:8099";
         }
       }
       const API_ORIGIN = getApiOrigin();
@@ -347,7 +349,7 @@
           fp.textContent =
             "偵測到以本機檔案開啟後台，API 已指向 " +
             API_ORIGIN +
-            "。建議改開：http://127.0.0.1:8000/admin ；若埠號不同請用 ?api=http://127.0.0.1:埠";
+            "。建議改開：http://127.0.0.1:8099/admin.html ；若埠號不同請用 ?api=http://127.0.0.1:埠";
         }
       }
 
@@ -619,7 +621,7 @@
           const n = (data.items || []).length;
           showMsg("已載入 " + n + " 筆。", true);
         } catch (e) {
-          showMsg("載入失敗：請在專案目錄執行 python3 server.py（埠 8000）。 " + e.message, false);
+          showMsg("載入失敗：請在專案目錄執行 python3 server.py（預設埠 8099）。 " + e.message, false);
         }
       }
 

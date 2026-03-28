@@ -7,14 +7,10 @@
   const LABEL = {
     zh: {
       readMore: "閱讀更多",
-      readLess: "收合",
-      source: "公告原文",
       empty: "尚無活動集錦，管理員可在後台新增。",
     },
     en: {
       readMore: "Read more",
-      readLess: "Show less",
-      source: "Original article",
       empty: "No highlights yet.",
     },
   };
@@ -37,9 +33,24 @@
     return LABEL[currentLang()][key] || LABEL.zh[key];
   }
 
-  async function loadData() {
+  function getApiOrigin() {
     try {
-      const r = await fetch("/api/highlights");
+      const params = new URLSearchParams(window.location.search);
+      const o = (params.get("api") || "").trim();
+      if (o && /^https?:\/\//i.test(o)) return o.replace(/\/$/, "");
+      const proto = window.location.protocol;
+      if (proto === "file:" || proto === "blob:") return "http://127.0.0.1:8099";
+      return "";
+    } catch {
+      return "http://127.0.0.1:8099";
+    }
+  }
+
+  async function loadData() {
+    const origin = getApiOrigin();
+    const apiPath = origin ? `${origin}/api/highlights` : "/api/highlights";
+    try {
+      const r = await fetch(apiPath);
       if (r.ok) return await r.json();
     } catch (_) {
       /* ignore */
@@ -113,28 +124,8 @@
   function truncatePreview(text) {
     const t = (text || "").trim();
     const chars = [...t];
-    if (chars.length <= PREVIEW_LEN) {
-      return { short: t, full: t, needsToggle: false };
-    }
-    return {
-      short: chars.slice(0, PREVIEW_LEN).join("") + "…",
-      full: t,
-      needsToggle: true,
-    };
-  }
-
-  function bindToggle(article) {
-    const btn = article.querySelector(".hl-readmore");
-    const shortEl = article.querySelector(".hl-body-short");
-    const fullEl = article.querySelector(".hl-body-full");
-    if (!btn || !shortEl || !fullEl) return;
-    if (btn.hidden) return;
-    btn.addEventListener("click", () => {
-      const open = article.classList.toggle("hl-item--open");
-      shortEl.hidden = open;
-      fullEl.hidden = !open;
-      btn.textContent = open ? lab("readLess") : lab("readMore");
-    });
+    if (chars.length <= PREVIEW_LEN) return t;
+    return chars.slice(0, PREVIEW_LEN).join("") + "…";
   }
 
   function render() {
@@ -177,7 +168,7 @@
         const title = pickTitle(it, lang);
         const bodyFull = pickText(it, lang);
         const url = pickUrl(it, lang);
-        const { short, full, needsToggle } = truncatePreview(bodyFull);
+        const preview = truncatePreview(bodyFull);
         const im = imgSrc(pickImage(it));
         const revClass = idx % 2 === 1 ? " hl-item--reverse" : "";
         const placeholder =
@@ -188,33 +179,26 @@
         const imgHtml = im
           ? `<img class="hl-photo" src="${esc(im)}" alt="${esc(title)}" loading="lazy" />`
           : `<img class="hl-photo hl-photo--ph" src="${placeholder}" alt="" />`;
-        const readMoreBtn = needsToggle
-          ? `<button type="button" class="hl-readmore">${esc(lab("readMore"))}</button>`
+        const hasArticleUrl = url && /^https?:\/\//i.test(url);
+        const readMoreLink = hasArticleUrl
+          ? `<a class="hl-readmore" href="${esc(url)}" target="_blank" rel="noopener noreferrer">${esc(
+              lab("readMore")
+            )}</a>`
           : "";
-        const detail =
-          url && /^https?:\/\//i.test(url)
-            ? `<a class="hl-detail" href="${esc(url)}" target="_blank" rel="noopener noreferrer">${esc(
-                lab("source")
-              )}</a>`
-            : "";
         return `
           <article class="hl-item${revClass}">
             <div class="hl-media">${imgHtml}</div>
             <div class="hl-text">
               <h3 class="hl-title">${esc(title || "—")}</h3>
               <div class="hl-body">
-                <p class="hl-body-short">${esc(short)}</p>
-                <p class="hl-body-full" hidden>${esc(full)}</p>
-                ${readMoreBtn}
+                <p class="hl-body-preview">${esc(preview)}</p>
+                ${readMoreLink}
               </div>
-              ${detail}
             </div>
           </article>
         `;
       })
       .join("");
-
-    root.querySelectorAll(".hl-item").forEach(bindToggle);
   }
 
   async function init() {

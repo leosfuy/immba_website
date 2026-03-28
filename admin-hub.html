@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>imMBA 總後台管理</title>
+    <style>
+      :root {
+        --bg: #0b1220;
+        --surface: #111a2e;
+        --border: #2a3f5c;
+        --text: #f1f5f9;
+        --muted: #94a3b8;
+        --accent: #22d3ee;
+        --accent2: #a78bfa;
+        --tab-inactive: #1e293b;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        font-family: system-ui, "Noto Sans TC", sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        font-size: 14px;
+      }
+      .top-bar {
+        flex-shrink: 0;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 12px 20px;
+        padding: 14px 20px;
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+      }
+      .top-bar h1 {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 800;
+        letter-spacing: 0.02em;
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      .top-meta {
+        flex: 1;
+        min-width: 200px;
+        color: var(--muted);
+        font-size: 0.82rem;
+        line-height: 1.45;
+      }
+      .top-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+      }
+      .top-actions a {
+        color: var(--accent);
+        text-decoration: none;
+        font-weight: 650;
+        font-size: 0.88rem;
+      }
+      .top-actions a:hover {
+        text-decoration: underline;
+      }
+      .url-panel {
+        margin: 0 20px 12px;
+        padding: 12px 14px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        background: rgba(34, 211, 238, 0.06);
+        font-size: 0.82rem;
+        line-height: 1.55;
+        color: var(--muted);
+      }
+      .url-panel strong {
+        color: var(--text);
+      }
+      .url-panel code,
+      .url-panel a {
+        color: var(--accent);
+        word-break: break-all;
+      }
+      .url-panel a {
+        font-weight: 650;
+      }
+      .url-panel pre {
+        margin: 8px 0 0;
+        padding: 10px;
+        background: #0b1220;
+        border-radius: 8px;
+        color: #cbd5e1;
+        font-size: 0.78rem;
+        overflow-x: auto;
+        white-space: pre-wrap;
+        word-break: break-all;
+      }
+      .tabs {
+        display: flex;
+        gap: 0;
+        padding: 0 20px;
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+      }
+      .tab {
+        appearance: none;
+        border: none;
+        margin: 0;
+        padding: 14px 22px;
+        font: inherit;
+        font-weight: 750;
+        cursor: pointer;
+        color: var(--muted);
+        background: var(--tab-inactive);
+        border: 1px solid transparent;
+        border-bottom: none;
+        border-radius: 12px 12px 0 0;
+        margin-bottom: -1px;
+        transition: color 0.15s ease, background 0.15s ease;
+      }
+      .tab:hover {
+        color: var(--text);
+        background: #243047;
+      }
+      .tab[aria-selected="true"] {
+        color: var(--text);
+        background: var(--bg);
+        border-color: var(--border);
+        border-bottom-color: var(--bg);
+      }
+      .panels {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+      }
+      .panel {
+        display: none;
+        flex: 1;
+        min-height: 0;
+      }
+      .panel.is-active {
+        display: flex;
+        flex-direction: column;
+      }
+      .panel iframe {
+        flex: 1;
+        width: 100%;
+        min-height: calc(100vh - 120px);
+        border: none;
+        background: #0f172a;
+      }
+      @media (max-width: 640px) {
+        .tabs {
+          padding: 0 10px;
+        }
+        .tab {
+          flex: 1;
+          padding: 12px 10px;
+          font-size: 0.88rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="top-bar">
+      <h1>imMBA 總後台管理</h1>
+      <p class="top-meta">
+        請透過本機伺服器開啟（<code style="color: #cbd5e1">python3 server.py</code>）。下方分頁分別載入公告與活動集錦後台；若用檔案雙擊開啟本頁，iframe 可能無法載入。
+      </p>
+      <div class="top-actions">
+        <a id="linkHome" href="./">返回首頁</a>
+      </div>
+    </header>
+    <div class="url-panel" id="urlPanel">
+      <strong>可直接複製的網址</strong>（須先在本機執行 <code>python3 server.py</code>；若 Not Found 代表<strong>沒開這台伺服器</strong>或埠不對）：
+      <pre id="urlList"></pre>
+    </div>
+    <div class="tabs" role="tablist" aria-label="後台分類">
+      <button type="button" class="tab" role="tab" id="tab-news" aria-selected="true" aria-controls="panel-news" data-target="panel-news">
+        公告管理
+      </button>
+      <button type="button" class="tab" role="tab" id="tab-hl" aria-selected="false" aria-controls="panel-hl" data-target="panel-hl">
+        活動集錦管理
+      </button>
+    </div>
+    <div class="panels">
+      <div class="panel is-active" id="panel-news" role="tabpanel" aria-labelledby="tab-news">
+        <iframe id="frame-news" title="公告管理後台" src="about:blank"></iframe>
+      </div>
+      <div class="panel" id="panel-hl" role="tabpanel" aria-labelledby="tab-hl">
+        <iframe id="frame-hl" title="活動集錦管理後台" src="about:blank"></iframe>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        /** 與目前頁面同層的絕對網址（避免 /admin-hub 寫死根路徑導致 404） */
+        function sameDirBase() {
+          const u = new URL(window.location.href);
+          const path = u.pathname.replace(/\/[^/]*$/, "") || "/";
+          const dir = path.endsWith("/") ? path : path + "/";
+          return new URL(dir, u.origin).href;
+        }
+
+        const base = sameDirBase();
+        const newsUrl = new URL("admin.html", base).href;
+        const hlUrl = new URL("admin-highlights.html", base).href;
+        const homeUrl = new URL(".", base).href;
+
+        document.getElementById("linkHome").href = homeUrl;
+
+        const listEl = document.getElementById("urlList");
+        if (listEl && window.location.protocol.startsWith("http")) {
+          const o = window.location.origin;
+          const root = o + "/";
+          listEl.textContent = [
+            "總後台（擇一）:",
+            o + "/hub.html",
+            o + "/admin-hub.html",
+            o + "/manage.html",
+            "",
+            "公告後台: " + o + "/admin.html",
+            "活動集錦後台: " + o + "/admin-highlights.html",
+            "首頁: " + root,
+            "",
+            "（以上埠號與你目前開啟本頁的網址相同；若你改用手動輸入，請與終端機 python3 server.py 印出的埠一致）",
+          ].join("\n");
+        } else if (listEl) {
+          listEl.textContent =
+            "請在專案資料夾終端機執行 python3 server.py，然後用瀏覽器開：\nhttp://127.0.0.1:8099/hub.html\n（預設 8099；若被占用，看終端機實際印出的埠）";
+        }
+
+        if (window.location.protocol === "file:") {
+          const meta = document.querySelector(".top-meta");
+          if (meta) {
+            meta.innerHTML =
+              "<strong>目前為本機檔案模式（file://）</strong>，無法使用後台 API。請在專案資料夾執行 <code style=\"color:#cbd5e1\">python3 server.py</code>，再用瀏覽器開 <code style=\"color:#cbd5e1\">http://127.0.0.1:8099/hub.html</code>（埠請看終端機）。";
+          }
+        }
+
+        const frameNews = document.getElementById("frame-news");
+        const frameHl = document.getElementById("frame-hl");
+        const tabs = Array.from(document.querySelectorAll(".tab"));
+        const panels = {
+          "panel-news": document.getElementById("panel-news"),
+          "panel-hl": document.getElementById("panel-hl"),
+        };
+
+        function ensureLoaded(id) {
+          if (id === "panel-news" && frameNews.getAttribute("data-loaded") !== "1") {
+            frameNews.src = newsUrl;
+            frameNews.setAttribute("data-loaded", "1");
+          }
+          if (id === "panel-hl" && frameHl.getAttribute("data-loaded") !== "1") {
+            frameHl.src = hlUrl;
+            frameHl.setAttribute("data-loaded", "1");
+          }
+        }
+
+        function activate(targetId) {
+          tabs.forEach((t) => {
+            const on = t.getAttribute("data-target") === targetId;
+            t.setAttribute("aria-selected", on ? "true" : "false");
+          });
+          Object.entries(panels).forEach(([id, el]) => {
+            const on = id === targetId;
+            el.classList.toggle("is-active", on);
+          });
+          ensureLoaded(targetId);
+        }
+
+        tabs.forEach((t) => {
+          t.addEventListener("click", () => activate(t.getAttribute("data-target")));
+        });
+
+        ensureLoaded("panel-news");
+      })();
+    </script>
+  </body>
+</html>

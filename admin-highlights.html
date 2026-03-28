@@ -205,14 +205,16 @@
     <h1>imMBA 活動集錦管理</h1>
     <p id="fileProtoWarn" class="file-proto-warn" hidden></p>
     <p class="hint">
-      每一則對應<strong>中英文公告內頁各一個網址</strong>。按下<strong>自網址抓取</strong>會帶入標題、內文與圖片（中文頁優先作為預設圖，可再上傳覆蓋）。首頁顯示約<strong>150
-      字</strong>，更長則出現「閱讀更多」。請用瀏覽器開啟
-      <code>http://127.0.0.1:8000/admin-highlights</code>
+      每一則對應<strong>中英文公告內頁各一個網址</strong>。按下<strong>自網址抓取</strong>會帶入標題、內文與圖片（中文頁優先作為預設圖，可再上傳覆蓋）。首頁約<strong>150 字</strong>預覽，「閱讀更多」連至原文。「<strong>英文公告網址</strong>」請盡量貼
+      <strong>imMBA 英文內頁</strong>（網址含 <code>immbaengindex</code>）；若誤貼輔大全球資訊網等<strong>中文頁</strong>，系統<strong>不會</strong>把抓到的中文站名當英文標題，會改以中文自動翻譯。中文<strong>內文</strong>在英文欄為空時會自動翻譯。請用瀏覽器開啟
+      <code>http://127.0.0.1:8099/admin-highlights.html</code>
       （<code>?api=</code> 用法同公告後台）。
     </p>
 
     <p class="more-links">
-      <a href="./admin">公告管理</a>
+      <a href="hub.html" target="_parent" rel="noopener">總後台</a>
+      ·
+      <a href="admin" target="_parent" rel="noopener">公告管理</a>
       <a href="https://www.management.fju.edu.tw/subweb/immba/news.php" target="_blank" rel="noopener">中文公告列表</a>
       <a href="https://www.management.fju.edu.tw/esubweb/immbaengindex/subindex.php" target="_blank" rel="noopener">英文列表</a>
     </p>
@@ -227,12 +229,19 @@
         <button type="button" class="secondary" id="newBtnScrape">自網址抓取</button>
       </div>
       <div class="pair titles">
-        <label>中文標題<input type="text" id="newTitleZh" autocomplete="off" /></label>
-        <label>英文標題<input type="text" id="newTitleEn" autocomplete="off" /></label>
+        <label>中文標題<input type="text" id="newTitleZh" autocomplete="off" placeholder="輸入中文標題" /></label>
+        <label
+          >英文標題（貼英文網址後可帶入官網；否則中文會自動翻譯）<input
+            type="text"
+            id="newTitleEn"
+            autocomplete="off"
+            placeholder="英文標題"
+        /></label>
       </div>
       <div class="pair">
-        <label>中文內文<textarea id="newBodyZh" placeholder="公開頁約顯示 150 字後收合"></textarea></label>
-        <label>英文內文<textarea id="newBodyEn"></textarea></label>
+        <label>中文內文<textarea id="newBodyZh" placeholder="首頁約顯示 150 字；英文欄為空時會自動翻譯"></textarea></label>
+        <label
+          >英文內文（可抓取或中文自動翻譯）<textarea id="newBodyEn" placeholder="英文內文"></textarea></label>
       </div>
       <div class="img-row">
         <label>圖片網址（可留空，以上傳為準）<input type="text" id="newImage" class="mono" placeholder="/uploads/highlights/… 或 https://…" /></label>
@@ -267,10 +276,10 @@
           const o = (params.get("api") || "").trim();
           if (o && /^https?:\/\//i.test(o)) return o.replace(/\/$/, "");
           const proto = window.location.protocol;
-          if (proto === "file:" || proto === "blob:") return "http://127.0.0.1:8000";
+          if (proto === "file:" || proto === "blob:") return "http://127.0.0.1:8099";
           return `${window.location.protocol}//${window.location.host}`;
         } catch {
-          return "http://127.0.0.1:8000";
+          return "http://127.0.0.1:8099";
         }
       }
       const API_ORIGIN = getApiOrigin();
@@ -282,7 +291,7 @@
           fp.textContent =
             "偵測到以本機檔案開啟，API 已指向 " +
             API_ORIGIN +
-            "。建議改開：http://127.0.0.1:8000/admin-highlights";
+            "。建議改開：http://127.0.0.1:8099/admin-highlights.html";
         }
       }
 
@@ -300,6 +309,90 @@
         div.className = "msg " + (ok ? "ok" : "err");
         div.textContent = text;
         msgEl.appendChild(div);
+      }
+
+      function debounce(fn, ms) {
+        let t;
+        return (...args) => {
+          clearTimeout(t);
+          t = setTimeout(() => fn(...args), ms);
+        };
+      }
+
+      function isHttpUrl(u) {
+        return /^https?:\/\//i.test((u || "").trim());
+      }
+
+      /** 英文標題欄：頁面抓到的字串若幾乎全是中文（如輔大全球資訊網站名），不可當成英文標題寫入 */
+      function looksLikeEnglishTitle(s) {
+        const t = String(s || "").trim();
+        if (!t) return false;
+        let latin = 0;
+        let cjk = 0;
+        for (const ch of t) {
+          if (/[a-zA-Z]/.test(ch)) latin++;
+          if (/[\u4e00-\u9fff\u3000-\u303f\uff00-\uffef]/.test(ch)) cjk++;
+        }
+        if (latin < 1) return false;
+        if (cjk > latin) return false;
+        return true;
+      }
+
+      /** 英文內文欄：避免把中文頁抓到的正文寫進英文欄 */
+      function looksLikeEnglishParagraph(s) {
+        const t = String(s || "").trim().slice(0, 600);
+        if (!t) return false;
+        let latin = 0;
+        let cjk = 0;
+        for (const ch of t) {
+          if (/[a-zA-Z]/.test(ch)) latin++;
+          if (/[\u4e00-\u9fff]/.test(ch)) cjk++;
+        }
+        if (latin < 8) return cjk < 6;
+        return cjk <= latin * 1.1;
+      }
+
+      /** 只有這類網址才「信任」網址帶入的英文標題，並暫停中文標題自動翻英文（與公告後台邏輯對齊） */
+      function isLikelyEnglishAnnouncementUrl(u) {
+        const low = String(u || "").trim().toLowerCase();
+        if (!isHttpUrl(low)) return false;
+        if (low.includes("immbaengindex")) return true;
+        if (low.includes("esubweb/immbaeng")) return true;
+        return false;
+      }
+
+      async function translateText(text) {
+        const r = await fetch(`${API_ORIGIN}/api/translate`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: String(text ?? "").trim() }),
+        });
+        const raw = await r.text();
+        let data;
+        try {
+          data = raw ? JSON.parse(raw) : {};
+        } catch {
+          throw new Error(
+            "無法讀取翻譯 API（請確認已執行 python3 server.py，且可連線 " + API_ORIGIN + "）"
+          );
+        }
+        if (!data.ok) throw new Error(data.error || "翻譯失敗");
+        return data.text || "";
+      }
+
+      async function fetchEnglishTitle(url) {
+        const u = String(url || "").trim();
+        if (!u) return "";
+        const r = await fetch(`${API_ORIGIN}/api/announcements/fetch-title?url=${encodeURIComponent(u)}`);
+        const raw = await r.text();
+        let data;
+        try {
+          data = raw ? JSON.parse(raw) : {};
+        } catch {
+          throw new Error("無法讀取標題 API");
+        }
+        if (!data.ok) throw new Error(data.error || "無法取得標題");
+        return (data.title || "").trim();
       }
 
       function clearComposer() {
@@ -342,9 +435,17 @@
         const warn = [data.warnZh, data.warnEn, data.errorZh, data.errorEn].filter(Boolean).join(" ");
         if (warn) showMsg(warn, false);
         if (data.titleZh) document.getElementById("newTitleZh").value = data.titleZh;
-        if (data.titleEn) document.getElementById("newTitleEn").value = data.titleEn;
+        if (data.titleEn && looksLikeEnglishTitle(data.titleEn)) {
+          document.getElementById("newTitleEn").value = data.titleEn;
+        }
         if (data.bodyZh) document.getElementById("newBodyZh").value = data.bodyZh;
-        if (data.bodyEn) document.getElementById("newBodyEn").value = data.bodyEn;
+        const nuEn = document.getElementById("newUrlEn").value.trim();
+        if (
+          data.bodyEn &&
+          (isLikelyEnglishAnnouncementUrl(nuEn) || looksLikeEnglishParagraph(data.bodyEn))
+        ) {
+          document.getElementById("newBodyEn").value = data.bodyEn;
+        }
         const img = (data.imageZh || "").trim() || (data.imageEn || "").trim();
         if (img) document.getElementById("newImage").value = img;
         const pv = document.getElementById("newPreview");
@@ -391,6 +492,62 @@
         }
       });
 
+      async function tryComposerTitleTranslate() {
+        const zh = document.getElementById("newTitleZh").value.trim();
+        if (!zh || document.getElementById("newTitleEn").value.trim()) return;
+        const uen = document.getElementById("newUrlEn").value.trim();
+        if (uen && isLikelyEnglishAnnouncementUrl(uen)) return;
+        try {
+          document.getElementById("newTitleEn").value = await translateText(zh);
+        } catch (e) {
+          showMsg("自動翻譯標題失敗：" + e.message, false);
+        }
+      }
+
+      async function tryComposerBodyTranslate() {
+        const zh = document.getElementById("newBodyZh").value.trim();
+        if (!zh || document.getElementById("newBodyEn").value.trim()) return;
+        try {
+          document.getElementById("newBodyEn").value = await translateText(zh);
+        } catch (e) {
+          showMsg("自動翻譯內文失敗：" + e.message, false);
+        }
+      }
+
+      const debounceComposerTitle = debounce(tryComposerTitleTranslate, 600);
+      const debounceComposerBody = debounce(tryComposerBodyTranslate, 900);
+      document.getElementById("newTitleZh").addEventListener("input", debounceComposerTitle);
+      document.getElementById("newTitleZh").addEventListener("blur", tryComposerTitleTranslate);
+      document.getElementById("newBodyZh").addEventListener("input", debounceComposerBody);
+      document.getElementById("newBodyZh").addEventListener("blur", tryComposerBodyTranslate);
+
+      async function runComposerEnTitle() {
+        const u = document.getElementById("newUrlEn").value.trim();
+        if (!isHttpUrl(u)) return;
+        const zh = document.getElementById("newTitleZh").value.trim();
+        const enEl = document.getElementById("newTitleEn");
+        try {
+          const t = await fetchEnglishTitle(u);
+          if (t && looksLikeEnglishTitle(t)) {
+            enEl.value = t;
+            return;
+          }
+          if (zh && !enEl.value.trim()) {
+            enEl.value = await translateText(zh);
+          }
+        } catch (_) {
+          if (zh && !enEl.value.trim()) {
+            try {
+              enEl.value = await translateText(zh);
+            } catch (e) {
+              showMsg("英文標題無法從網址取得，自動翻譯也失敗：" + e.message, false);
+            }
+          }
+        }
+      }
+      document.getElementById("newUrlEn").addEventListener("blur", runComposerEnTitle);
+      document.getElementById("newUrlEn").addEventListener("paste", debounce(runComposerEnTitle, 400));
+
       let currentMoreUrl = {
         zh: "https://www.management.fju.edu.tw/subweb/immba/news.php",
         en: "https://www.management.fju.edu.tw/esubweb/immbaengindex/subindex.php",
@@ -429,12 +586,16 @@
             <button type="button" class="secondary btn-scrape">自網址抓取</button>
           </div>
           <div class="pair titles">
-            <label>中文標題<input type="text" class="titleZh" value="${escAttr(it.titleZh)}" /></label>
-            <label>英文標題<input type="text" class="titleEn" value="${escAttr(it.titleEn)}" /></label>
+            <label>中文標題<input type="text" class="titleZh" value="${escAttr(it.titleZh)}" placeholder="輸入中文標題" /></label>
+            <label>英文標題（貼英文網址後可帶入；否則中文自動翻譯）<input type="text" class="titleEn" value="${escAttr(
+              it.titleEn
+            )}" placeholder="英文標題" /></label>
           </div>
           <div class="pair">
-            <label>中文內文<textarea class="bodyZh">${escAttr(it.bodyZh)}</textarea></label>
-            <label>英文內文<textarea class="bodyEn">${escAttr(it.bodyEn)}</textarea></label>
+            <label>中文內文<textarea class="bodyZh" placeholder="英文欄為空時會自動翻譯">${escAttr(
+              it.bodyZh
+            )}</textarea></label>
+            <label>英文內文<textarea class="bodyEn" placeholder="英文內文">${escAttr(it.bodyEn)}</textarea></label>
           </div>
           <div class="img-row">
             <label>圖片網址<input type="text" class="image mono" value="${escAttr(it.image)}" /></label>
@@ -469,9 +630,16 @@
           try {
             const data = await scrapePair(urlZh, urlEn);
             if (data.titleZh) el.querySelector(".titleZh").value = data.titleZh;
-            if (data.titleEn) el.querySelector(".titleEn").value = data.titleEn;
+            if (data.titleEn && looksLikeEnglishTitle(data.titleEn)) {
+              el.querySelector(".titleEn").value = data.titleEn;
+            }
             if (data.bodyZh) el.querySelector(".bodyZh").value = data.bodyZh;
-            if (data.bodyEn) el.querySelector(".bodyEn").value = data.bodyEn;
+            if (
+              data.bodyEn &&
+              (isLikelyEnglishAnnouncementUrl(urlEn) || looksLikeEnglishParagraph(data.bodyEn))
+            ) {
+              el.querySelector(".bodyEn").value = data.bodyEn;
+            }
             const img = (data.imageZh || "").trim() || (data.imageEn || "").trim();
             if (img) imgInput.value = img;
             syncPreview();
@@ -493,6 +661,65 @@
             showMsg(err.message, false);
           }
         });
+
+        const titleZhEl = el.querySelector(".titleZh");
+        const titleEnEl = el.querySelector(".titleEn");
+        const bodyZhEl = el.querySelector(".bodyZh");
+        const bodyEnEl = el.querySelector(".bodyEn");
+        const urlEnEl = el.querySelector(".urlEn");
+
+        async function tryCardTitleTranslate() {
+          const zh = titleZhEl.value.trim();
+          if (!zh || titleEnEl.value.trim()) return;
+          const uen = urlEnEl.value.trim();
+          if (uen && isLikelyEnglishAnnouncementUrl(uen)) return;
+          try {
+            titleEnEl.value = await translateText(zh);
+          } catch (e) {
+            showMsg("自動翻譯標題失敗：" + e.message, false);
+          }
+        }
+
+        async function tryCardBodyTranslate() {
+          const zh = bodyZhEl.value.trim();
+          if (!zh || bodyEnEl.value.trim()) return;
+          try {
+            bodyEnEl.value = await translateText(zh);
+          } catch (e) {
+            showMsg("自動翻譯內文失敗：" + e.message, false);
+          }
+        }
+
+        titleZhEl.addEventListener("input", debounce(tryCardTitleTranslate, 600));
+        titleZhEl.addEventListener("blur", tryCardTitleTranslate);
+        bodyZhEl.addEventListener("input", debounce(tryCardBodyTranslate, 900));
+        bodyZhEl.addEventListener("blur", tryCardBodyTranslate);
+
+        async function runCardEnTitle() {
+          const u = urlEnEl.value.trim();
+          if (!isHttpUrl(u)) return;
+          const zh = titleZhEl.value.trim();
+          try {
+            const t = await fetchEnglishTitle(u);
+            if (t && looksLikeEnglishTitle(t)) {
+              titleEnEl.value = t;
+              return;
+            }
+            if (zh && !titleEnEl.value.trim()) {
+              titleEnEl.value = await translateText(zh);
+            }
+          } catch (_) {
+            if (zh && !titleEnEl.value.trim()) {
+              try {
+                titleEnEl.value = await translateText(zh);
+              } catch (e) {
+                showMsg("英文標題無法從網址取得，自動翻譯也失敗：" + e.message, false);
+              }
+            }
+          }
+        }
+        urlEnEl.addEventListener("blur", runCardEnTitle);
+        urlEnEl.addEventListener("paste", debounce(runCardEnTitle, 400));
 
         return el;
       }
@@ -563,20 +790,61 @@
       document.getElementById("btnLoad").addEventListener("click", load);
       document.getElementById("btnSave").addEventListener("click", save);
 
-      document.getElementById("btnAppend").addEventListener("click", () => {
-        const row = normalizeHighlight({
-          urlZh: document.getElementById("newUrlZh").value.trim(),
-          urlEn: document.getElementById("newUrlEn").value.trim(),
-          titleZh: document.getElementById("newTitleZh").value.trim(),
-          titleEn: document.getElementById("newTitleEn").value.trim(),
-          bodyZh: document.getElementById("newBodyZh").value.trim(),
-          bodyEn: document.getElementById("newBodyEn").value.trim(),
-          image: document.getElementById("newImage").value.trim(),
-        });
-        if (!row.titleZh && !row.bodyZh && !row.urlZh && !row.urlEn && !row.image) {
+      document.getElementById("btnAppend").addEventListener("click", async () => {
+        const urlZh = document.getElementById("newUrlZh").value.trim();
+        let urlEn = document.getElementById("newUrlEn").value.trim();
+        let titleZh = document.getElementById("newTitleZh").value.trim();
+        let titleEn = document.getElementById("newTitleEn").value.trim();
+        const bodyZh = document.getElementById("newBodyZh").value.trim();
+        let bodyEn = document.getElementById("newBodyEn").value.trim();
+        const image = document.getElementById("newImage").value.trim();
+
+        if (!titleZh && !bodyZh && !urlZh && !urlEn && !image) {
           showMsg("請至少填寫標題、內文或網址之一。", false);
           return;
         }
+
+        if (urlEn && isHttpUrl(urlEn)) {
+          try {
+            const t = await fetchEnglishTitle(urlEn);
+            if (t && looksLikeEnglishTitle(t)) {
+              titleEn = t;
+              document.getElementById("newTitleEn").value = t;
+            }
+          } catch (e) {
+            showMsg("無法從英文網址取得標題，將改以中文翻譯：" + e.message, false);
+          }
+        }
+        if (titleZh && !document.getElementById("newTitleEn").value.trim()) {
+          try {
+            titleEn = await translateText(titleZh);
+            document.getElementById("newTitleEn").value = titleEn;
+          } catch (e) {
+            showMsg("英文標題翻譯失敗，請手動填寫後再按「加入列表」：" + e.message, false);
+            return;
+          }
+        }
+        if (bodyZh && !document.getElementById("newBodyEn").value.trim()) {
+          try {
+            bodyEn = await translateText(bodyZh);
+            document.getElementById("newBodyEn").value = bodyEn;
+          } catch (e) {
+            showMsg("英文內文翻譯失敗，請手動填寫後再按「加入列表」：" + e.message, false);
+            return;
+          }
+        }
+
+        titleEn = document.getElementById("newTitleEn").value.trim();
+        bodyEn = document.getElementById("newBodyEn").value.trim();
+        const row = normalizeHighlight({
+          urlZh,
+          urlEn,
+          titleZh,
+          titleEn: titleEn || titleZh,
+          bodyZh,
+          bodyEn,
+          image,
+        });
         row.id = "hl-" + Date.now() + "-" + Math.random().toString(16).slice(2, 8);
         listEl.insertBefore(cardTemplate(row), listEl.firstChild);
         clearComposer();

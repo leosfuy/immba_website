@@ -15,7 +15,7 @@
       href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./assets/styles.css?v=3" />
+    <link rel="stylesheet" href="./assets/styles.css?v=6" />
     <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml" />
   </head>
   <body>
@@ -25,9 +25,15 @@
       <div class="top-banner">
         <div class="shell top-banner-inner">
           <div class="banner-left">
-            <div class="logo-wrap">
+            <a
+              class="logo-wrap"
+              id="logo-admin-hub"
+              href="http://127.0.0.1:8099/hub.html"
+              title="總後台管理"
+              aria-label="總後台管理（公告與活動集錦）"
+            >
               <img class="logo" src="./assets/logo.svg" width="200" height="200" alt="imMBA logo" />
-            </div>
+            </a>
             <div class="banner-titles">
               <div class="brand-title brand-title--banner" data-i18n="brandTitle">輔仁大學國際經營管理碩士班</div>
               <div class="brand-subtitle brand-subtitle--banner" data-i18n="brandSubtitle">
@@ -288,8 +294,17 @@
       </div>
     </footer>
 
-    <script src="./assets/announcements.js?v=5" defer></script>
-    <script src="./assets/highlights.js?v=1" defer></script>
+    <script src="./assets/announcements.js?v=6" defer></script>
+    <script src="./assets/highlights.js?v=3" defer></script>
     <script src="./assets/app.js" defer></script>
+    <script>
+      (function () {
+        var a = document.getElementById("logo-admin-hub");
+        if (!a) return;
+        if (location.protocol === "http:" || location.protocol === "https:") {
+          a.href = location.origin + "/hub.html";
+        }
+      })();
+    </script>
   </body>
 </html>
