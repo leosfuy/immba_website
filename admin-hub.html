@@ -70,38 +70,6 @@
       .top-actions a:hover {
         text-decoration: underline;
       }
-      .url-panel {
-        margin: 0 20px 12px;
-        padding: 12px 14px;
-        border-radius: 12px;
-        border: 1px solid var(--border);
-        background: rgba(34, 211, 238, 0.06);
-        font-size: 0.82rem;
-        line-height: 1.55;
-        color: var(--muted);
-      }
-      .url-panel strong {
-        color: var(--text);
-      }
-      .url-panel code,
-      .url-panel a {
-        color: var(--accent);
-        word-break: break-all;
-      }
-      .url-panel a {
-        font-weight: 650;
-      }
-      .url-panel pre {
-        margin: 8px 0 0;
-        padding: 10px;
-        background: #0b1220;
-        border-radius: 8px;
-        color: #cbd5e1;
-        font-size: 0.78rem;
-        overflow-x: auto;
-        white-space: pre-wrap;
-        word-break: break-all;
-      }
       .tabs {
         display: flex;
         gap: 0;
@@ -179,10 +147,6 @@
         <a id="linkHome" href="./">返回首頁</a>
       </div>
     </header>
-    <div class="url-panel" id="urlPanel">
-      <strong>可直接複製的網址</strong>（須先在本機執行 <code>python3 server.py</code>；若 Not Found 代表<strong>沒開這台伺服器</strong>或埠不對）：
-      <pre id="urlList"></pre>
-    </div>
     <div class="tabs" role="tablist" aria-label="後台分類">
       <button type="button" class="tab" role="tab" id="tab-news" aria-selected="true" aria-controls="panel-news" data-target="panel-news">
         公告管理
@@ -216,27 +180,6 @@
         const homeUrl = new URL(".", base).href;
 
         document.getElementById("linkHome").href = homeUrl;
-
-        const listEl = document.getElementById("urlList");
-        if (listEl && window.location.protocol.startsWith("http")) {
-          const o = window.location.origin;
-          const root = o + "/";
-          listEl.textContent = [
-            "總後台（擇一）:",
-            o + "/hub.html",
-            o + "/admin-hub.html",
-            o + "/manage.html",
-            "",
-            "公告後台: " + o + "/admin.html",
-            "活動集錦後台: " + o + "/admin-highlights.html",
-            "首頁: " + root,
-            "",
-            "（以上埠號與你目前開啟本頁的網址相同；若你改用手動輸入，請與終端機 python3 server.py 印出的埠一致）",
-          ].join("\n");
-        } else if (listEl) {
-          listEl.textContent =
-            "請在專案資料夾終端機執行 python3 server.py，然後用瀏覽器開：\nhttp://127.0.0.1:8099/hub.html\n（預設 8099；若被占用，看終端機實際印出的埠）";
-        }
 
         if (window.location.protocol === "file:") {
           const meta = document.querySelector(".top-meta");
